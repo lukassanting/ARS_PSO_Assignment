@@ -18,7 +18,9 @@ y_min = y.ravel()[z.argmin()]
 
 # Set algorithm hyper-parameters
 c1 = c2 = 0.1
-w = 0.8
+#w = 0.8
+inertia_start = 0.9
+inertia_end = 0.4
 
 # initialise random locations and velocities for the particles
 n_particles = 20
@@ -41,7 +43,8 @@ g_best = p_best[:, p_best_out.argmin()]
 g_best_out = p_best_out.min()
 
 # Function to do an iteration of PSO
-def iterate():
+def iterate(current_iter=1, inertia_start=0.9, inertia_end=0.9, max_iter=1):
+    w = np.round(inertia_start-((inertia_start-inertia_end)/max_iter)*current_iter, decimals=3)
     global V, X, p_best, p_best_out, g_best, g_best_out
     r1, r2 = np.random.rand(2)
     V = w * V + (c1 * r1 * (p_best - X)) + (c2 * r2 * (g_best.reshape(-1, 1) - X))
@@ -70,9 +73,9 @@ ax.set_xlim([-2, 2])
 ax.set_ylim([-1, 3])
 
 # Function to animate iterations
-def animate(i):
+def animate(i, *fargs):
     title = 'Iteration {:02d}'.format(i)
-    iterate()
+    iterate(current_iter = i, inertia_start=fargs[0], inertia_end=fargs[1], max_iter=fargs[2])
     ax.set_title(title)
     p_current.set_offsets(X.T)
     p_arrows.set_offsets(X.T)
@@ -80,9 +83,9 @@ def animate(i):
     p_g_best.set_offsets(g_best.reshape(1, -1))
     return ax, p_current, p_arrows, p_g_best
 
-max_iterations = 200
-anim = FuncAnimation(fig, animate, frames=list(range(1, max_iterations)), interval=500, blit=False, repeat=True)
-anim.save("PSO_rosenbrock.gif", dpi=120, writer="imagemagick")
+max_iterations = 500
+anim = FuncAnimation(fig, animate, frames=list(range(1, max_iterations)), interval=100, blit=False, repeat=True, fargs=(inertia_start,inertia_end,max_iterations))
+anim.save("PSO_rosenbrock.gif", dpi=120, writer="ffmpeg")
 
 print("PSO found best solution at rosenbrock({})={}".format(g_best, g_best_out))
 print("Global optimal at rosenbrock({})={}".format([x_min, y_min], rosenbrock(x_min, y_min)))
