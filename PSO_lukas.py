@@ -3,27 +3,31 @@ import numpy as np
 from matplotlib.animation import FuncAnimation
 
 # ***************** STEP 1 - DEFINE FUNCTION TO OPTIMISE HERE:
-opt_func = "rastigrin" # Set to "rosenbrock" or to "rastigrin"
+opt_func = "rosenbrock"  # Set to "rosenbrock" or to "rastigrin"
+
 
 # ---------------- FUNCTIONS -------------------
 #  Rosenbrock function to optimise
 def rosenbrock(x, y, a=0, b=150):
     return ((a - x) ** 2) + b * ((y - (x ** 2)) ** 2)
 
-def rastigrin(x,y):
-    return 20 + x ** 2 - 10 * np.cos(2*np.pi*x)+y**2-10*np.cos(2*np.pi*y)
+
+def rastigrin(x, y):
+    return 20 + x ** 2 - 10 * np.cos(2 * np.pi * x) + y ** 2 - 10 * np.cos(2 * np.pi * y)
+
 
 #  ---------------- PARTICLE SWARM OPTIMIZATION -------------------
 # Set algorithm hyper-parameters
-c1 = c2 = 0.1
-#w = 0.8
+c1_start = c2_start = 1     # Good initial value = 1
+c1_end = c2_end = 0.5       # Good initial value = 0.5
+# w = 0.8
 inertia_start = 0.9
 inertia_end = 0.4
 
 # initialise random locations and velocities for the particles
-n_particles = 20
-np.random.seed(100)
-V = np.random.randn(2, n_particles) * 0.1   # vector values
+n_particles = 30
+np.random.seed()
+V = np.random.randn(2, n_particles) * 0.1  # vector values
 
 #  ---- SET VALUES THAT ARE DEPENDENT ON CHOSEN FUNCTION ----
 
@@ -32,8 +36,8 @@ if opt_func == "rosenbrock":
     f = rosenbrock
     # Initialise location range of particles on X and Y-axes to be between 0 and 4
     X = np.random.rand(2, n_particles) * 4
-    X[0] = X[0] - 2     # Change range of particles on X-axis to be between -2 and 2
-    X[1] = X[1] - 1     # Change range of particles on Y-axis to be between -1 and 3
+    X[0] = X[0] - 2  # Change range of particles on X-axis to be between -2 and 2
+    X[1] = X[1] - 1  # Change range of particles on Y-axis to be between -1 and 3
     # Set values used for defining plot size and location to fit specified function bounds
     plot_xlow = -2
     plot_xhigh = 2
@@ -45,13 +49,12 @@ if opt_func == "rastigrin":
     f = rastigrin
     # Initialise location range of particles on X and Y-axes to be between 0 and 10
     X = np.random.rand(2, n_particles) * 10
-    X = X - 5       # Change range of particles on X-axis and Y-axis to be between -5 and 5
+    X = X - 5  # Change range of particles on X-axis and Y-axis to be between -5 and 5
     # Set values used for defining plot size and location to fit specified function bounds
     plot_xlow = plot_ylow = -5
     plot_xhigh = plot_yhigh = 5
 
-
-# Initialise p_best and g_best
+# --------------------- Initialise p_best and g_best ---------------------------
 #  ---- P_best = for each particle, the x and y co-ords of personal best so far
 #  ---- P_best_out = Personal best values from function for each particle
 #  ---- G_best = co-ords of the global best particle
@@ -62,9 +65,12 @@ p_best_out = f(X[0], X[1])
 g_best = p_best[:, p_best_out.argmin()]
 g_best_out = p_best_out.min()
 
+
 # Function to do an iteration of PSO
-def iterate(current_iter=1, inertia_start=0.9, inertia_end=0.9, max_iter=1):
-    w = np.round(inertia_start-((inertia_start-inertia_end)/max_iter)*current_iter, decimals=3)
+def iterate(current_iter=1, inertia_start=0.9, inertia_end=0.9, c1_start=2, c1_end=0.1, c2_start=2, c2_end=0.1, max_iter=1):
+    w = np.round(inertia_start - ((inertia_start - inertia_end) / max_iter) * current_iter, decimals=3)
+    c1 = np.round(c1_start - ((c1_start - c1_end) / max_iter) * current_iter, decimals=3)
+    c2 = np.round(c2_start - ((c2_start - c2_end) / max_iter) * current_iter, decimals=3)
     global V, X, p_best, p_best_out, g_best, g_best_out
     r1, r2 = np.random.rand(2)
     V = w * V + (c1 * r1 * (p_best - X)) + (c2 * r2 * (g_best.reshape(-1, 1) - X))
@@ -75,6 +81,7 @@ def iterate(current_iter=1, inertia_start=0.9, inertia_end=0.9, max_iter=1):
     p_best_out = np.array([p_best_out, f_out]).min(axis=0)
     g_best = p_best[:, p_best_out.argmin()]
     g_best_out = p_best_out.min()
+
 
 #  ---------------- PLOTTING AND ANIMATING ITERATIONS-------------------
 
@@ -98,10 +105,18 @@ p_g_best = plt.scatter([g_best[0]], [g_best[1]], marker='*', s=100, color='black
 ax.set_xlim([plot_xlow, plot_xhigh])
 ax.set_ylim([plot_ylow, plot_yhigh])
 
+
 # Function to animate iterations
 def animate(i, *fargs):
     title = 'Iteration {:02d}'.format(i)
-    iterate(current_iter = i, inertia_start=fargs[0], inertia_end=fargs[1], max_iter=fargs[2])
+    iterate(current_iter=i,
+            inertia_start=fargs[0],
+            inertia_end=fargs[1],
+            c1_start=fargs[2],
+            c1_end=fargs[3],
+            c2_start=fargs[4],
+            c2_end=fargs[5],
+            max_iter=fargs[6])
     ax.set_title(title)
     p_current.set_offsets(X.T)
     p_arrows.set_offsets(X.T)
@@ -109,8 +124,16 @@ def animate(i, *fargs):
     p_g_best.set_offsets(g_best.reshape(1, -1))
     return ax, p_current, p_arrows, p_g_best
 
+
 max_iterations = 250
-anim = FuncAnimation(fig, animate, frames=list(range(1, max_iterations)), interval=150, blit=False, repeat=True, fargs=(inertia_start,inertia_end,max_iterations))
+anim = FuncAnimation(fig, animate, frames=list(range(1, max_iterations)), interval=150, blit=False, repeat=True, fargs=(
+    inertia_start,
+    inertia_end,
+    c1_start,
+    c1_end,
+    c2_start,
+    c2_start,
+    max_iterations))
 anim.save("PSO_{}.gif".format(opt_func), dpi=120, writer="ffmpeg")
 
 print("PSO found best solution at ({})={}".format(g_best, g_best_out))
