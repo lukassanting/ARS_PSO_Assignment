@@ -3,7 +3,7 @@ import numpy as np
 from matplotlib.animation import FuncAnimation
 
 # ***************** STEP 1 - DEFINE FUNCTION TO OPTIMISE HERE:
-opt_func = "rosenbrock"  # Set to "rosenbrock" or to "rastigrin"
+opt_func = "rastigrin"  # Set to "rosenbrock" or to "rastigrin"
 
 
 # ---------------- FUNCTIONS -------------------
@@ -18,14 +18,14 @@ def rastigrin(x, y):
 
 #  ---------------- PARTICLE SWARM OPTIMIZATION -------------------
 # Set algorithm hyper-parameters
-c1_start = c2_start = 1     # Good initial value = 1
-c1_end = c2_end = 0.5       # Good initial value = 0.5
+c1_start = c2_start = 1  # Good initial value = 1
+c1_end = c2_end = 0.1  # Good initial value = 0.5
 # w = 0.8
 inertia_start = 0.9
 inertia_end = 0.4
 
 # initialise random locations and velocities for the particles
-n_particles = 30
+n_particles = 20
 np.random.seed()
 V = np.random.randn(2, n_particles) * 0.1  # vector values
 
@@ -67,7 +67,8 @@ g_best_out = p_best_out.min()
 
 
 # Function to do an iteration of PSO
-def iterate(current_iter=1, inertia_start=0.9, inertia_end=0.9, c1_start=2, c1_end=0.1, c2_start=2, c2_end=0.1, max_iter=1):
+def iterate(current_iter=1, inertia_start=0.9, inertia_end=0.9, c1_start=2, c1_end=0.1, c2_start=2, c2_end=0.1,
+            max_iter=1):
     w = np.round(inertia_start - ((inertia_start - inertia_end) / max_iter) * current_iter, decimals=3)
     c1 = np.round(c1_start - ((c1_start - c1_end) / max_iter) * current_iter, decimals=3)
     c2 = np.round(c2_start - ((c2_start - c2_end) / max_iter) * current_iter, decimals=3)
@@ -132,7 +133,7 @@ anim = FuncAnimation(fig, animate, frames=list(range(1, max_iterations)), interv
     c1_start,
     c1_end,
     c2_start,
-    c2_start,
+    c2_end,
     max_iterations))
 anim.save("PSO_{}.gif".format(opt_func), dpi=120, writer="ffmpeg")
 
