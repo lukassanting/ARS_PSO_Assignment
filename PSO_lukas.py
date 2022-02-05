@@ -87,7 +87,7 @@ def iterate(current_iter=1, inertia_start=0.9, inertia_end=0.9, c1_start=2, c1_e
 #  ---------------- PLOTTING AND ANIMATING ITERATIONS-------------------
 
 # Set-up contour plot
-x, y = np.array(np.meshgrid(np.linspace(plot_xlow, plot_xhigh, 100), np.linspace(plot_ylow, plot_yhigh, 100)))
+x, y = np.array(np.meshgrid(np.linspace(plot_xlow, plot_xhigh, 1000), np.linspace(plot_ylow, plot_yhigh, 1000)))
 z = f(x, y)
 x_min = x.ravel()[z.argmin()]
 y_min = y.ravel()[z.argmin()]
