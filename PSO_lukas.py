@@ -3,7 +3,7 @@ import numpy as np
 from matplotlib.animation import FuncAnimation
 
 # ***************** STEP 1 - DEFINE FUNCTION TO OPTIMISE HERE:
-opt_func = "rastigrin"  # Set to "rosenbrock" or to "rastigrin"
+opt_func = "rosenbrock"  # Set to "rosenbrock" or to "rastigrin"
 
 
 # ---------------- FUNCTIONS -------------------
@@ -18,8 +18,8 @@ def rastigrin(x, y):
 
 #  ---------------- PARTICLE SWARM OPTIMIZATION -------------------
 # Set algorithm hyper-parameters
-c1_start = c2_start = 1  # Good initial value = 1
-c1_end = c2_end = 0.1  # Good initial value = 0.5
+c1_start = c2_start = 2  # Good initial value = 1
+c1_end = c2_end = 0.5  # Good initial value = 0.5
 # w = 0.8
 inertia_start = 0.9
 inertia_end = 0.4
@@ -138,4 +138,4 @@ anim = FuncAnimation(fig, animate, frames=list(range(1, max_iterations)), interv
 anim.save("PSO_{}.gif".format(opt_func), dpi=120, writer="ffmpeg")
 
 print("PSO found best solution at ({})={}".format(g_best, g_best_out))
-print("Global optimal at ({})={}".format([x_min, y_min], rosenbrock(x_min, y_min)))
+print("Global optimal at ({})={}".format([x_min, y_min], f(x_min, y_min)))
