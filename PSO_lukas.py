@@ -1,5 +1,5 @@
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
 # ***************** STEP 1 - DEFINE FUNCTION TO OPTIMISE HERE:
@@ -14,6 +14,30 @@ def rosenbrock(x, y, a=0, b=150):
 
 def rastigrin(x, y):
     return 20 + x ** 2 - 10 * np.cos(2 * np.pi * x) + y ** 2 - 10 * np.cos(2 * np.pi * y)
+
+
+# Function to do an iteration of PSO
+def particle_swarm_optimization(current_iter=1, a_start=0.9, a_end=0.9, b_start=2, b_end=0.1, c_start=2, c_end=0.1,
+            max_iter=1):
+    global V, X, p_best, p_best_out, g_best, g_best_out
+    r1, r2 = np.random.rand(2)
+    # decay values of a (value for current direction)
+    a = np.round(a_start - ((a_start - a_end) / max_iter) * current_iter, decimals=3)
+    # decay values of b and c (values for personal best and global best directions)
+    b = np.round(b_start - ((b_start - b_end) / max_iter) * current_iter, decimals=3)
+    c = np.round(c_start - ((c_start - c_end) / max_iter) * current_iter, decimals=3)
+    V = a * V + (b * r1 * (p_best - X)) + (c * r2 * (g_best.reshape(-1, 1) - X))
+    X = X + V
+    # Update p_best and g_best
+    f_out = f(X[0], X[1])
+    for i in range(n_particles):
+        if(p_best_out[i] >= f_out[i]):
+            p_best[0,i] = X[0,i]
+            p_best[1,i] = X[1,i]
+    p_best_out = np.array([p_best_out, f_out]).min(axis=0)
+    g_best[0] = p_best[0, p_best_out.argmin()]
+    g_best[1] = p_best[1, p_best_out.argmin()]
+    g_best_out = p_best_out.min()
 
 
 #  ---------------- PARTICLE SWARM OPTIMIZATION -------------------
@@ -56,38 +80,21 @@ if opt_func == "rastigrin":
     plot_xhigh = plot_yhigh = 5
 
 # --------------------- Initialise p_best and g_best ---------------------------
-#  ---- P_best = for each particle, the x and y co-ords of personal best so far
-#  ---- P_best_out = Personal best values from function for each particle
-#  ---- G_best = co-ords of the global best particle
-#  ---- G_best_out = function value of the global best particle
+#  ---- p_best      = for each particle, the x and y co-ords of personal best so far
+#  ---- p_best_out  = Personal best values from function for each particle
+#  ---- g_best      = co-ords of the global best particle
+#  ---- g_best_out  = function value of the global best particle
 
 p_best = X
 p_best_out = f(X[0], X[1])
-g_best = p_best[:, p_best_out.argmin()]
+
+best_x = p_best[0, p_best_out.argmin()]
+best_y = p_best[1, p_best_out.argmin()]
+g_best = np.array([best_x, best_y])
 g_best_out = p_best_out.min()
 
-
-# Function to do an iteration of PSO
-def iterate(current_iter=1, a_start=0.9, a_end=0.9, b_start=2, b_end=0.1, c_start=2, c_end=0.1,
-            max_iter=1):
-    # decay values of a (AKA inertia: value for current direction)
-    a = np.round(a_start - ((a_start - a_end) / max_iter) * current_iter, decimals=3)
-    # decay values of b and c (values for personal best and global best)
-    b = np.round(b_start - ((b_start - b_end) / max_iter) * current_iter, decimals=3)
-    c = np.round(c_start - ((c_start - c_end) / max_iter) * current_iter, decimals=3)
-    global V, X, p_best, p_best_out, g_best, g_best_out
-    r1, r2 = np.random.rand(2)
-    V = a * V + (b * r1 * (p_best - X)) + (c * r2 * (g_best.reshape(-1, 1) - X))
-    X = X + V
-    # Update p_best and g_best
-    f_out = f(X[0], X[1])
-    p_best[:, (p_best_out >= f_out)] = X[:, (p_best_out >= f_out)]
-    p_best_out = np.array([p_best_out, f_out]).min(axis=0)
-    g_best = p_best[:, p_best_out.argmin()]
-    g_best_out = p_best_out.min()
-
-
 #  ---------------- PLOTTING AND ANIMATING ITERATIONS-------------------
+
 
 # Set-up contour plot
 x, y = np.array(np.meshgrid(np.linspace(plot_xlow, plot_xhigh, 1000), np.linspace(plot_ylow, plot_yhigh, 1000)))
@@ -109,11 +116,10 @@ p_g_best = plt.scatter([g_best[0]], [g_best[1]], marker='*', s=100, color='black
 ax.set_xlim([plot_xlow, plot_xhigh])
 ax.set_ylim([plot_ylow, plot_yhigh])
 
-
 # Function to animate iterations
 def animate(i, *fargs):
     title = 'Iteration {:02d}'.format(i)
-    iterate(current_iter=i,
+    particle_swarm_optimization(current_iter=i,
             a_start=fargs[0],
             a_end=fargs[1],
             b_start=fargs[2],
@@ -128,7 +134,6 @@ def animate(i, *fargs):
     p_g_best.set_offsets(g_best.reshape(1, -1))
     return ax, p_current, p_arrows, p_g_best
 
-
 max_iterations = 250
 anim = FuncAnimation(fig, animate, frames=list(range(1, max_iterations)), interval=150, blit=False, repeat=True, fargs=(
     a_start,
@@ -140,5 +145,6 @@ anim = FuncAnimation(fig, animate, frames=list(range(1, max_iterations)), interv
     max_iterations))
 anim.save("PSO_{}.gif".format(opt_func), dpi=120, writer="ffmpeg")
 
-print("PSO found best solution at {}({})={}".format(opt_func, g_best, g_best_out))
-print("Global optimal at {}({})= {}".format( opt_func, [x_min, y_min], f(x_min, y_min)))
+
+# For full transparency, we based our code for animation on the implementation in the following article: https://machinelearningmastery.com/a-gentle-introduction-to-particle-swarm-optimization/
+# While this code also uses PSO (how we found the article), we kept our logic for PSO and edited our implementation of the PSO algorithm to work with the animation functions
