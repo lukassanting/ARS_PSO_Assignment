@@ -16,31 +16,8 @@ def rastigrin(x, y):
     return 20 + x ** 2 - 10 * np.cos(2 * np.pi * x) + y ** 2 - 10 * np.cos(2 * np.pi * y)
 
 
-# Function to do an iteration of PSO
-def particle_swarm_optimization(current_iter=1, a_start=0.9, a_end=0.9, b_start=2, b_end=0.1, c_start=2, c_end=0.1,
-            max_iter=1):
-    global V, X, p_best, p_best_out, g_best, g_best_out
-    r1, r2 = np.random.rand(2)
-    # decay values of a (value for current direction)
-    a = np.round(a_start - ((a_start - a_end) / max_iter) * current_iter, decimals=3)
-    # decay values of b and c (values for personal best and global best directions)
-    b = np.round(b_start - ((b_start - b_end) / max_iter) * current_iter, decimals=3)
-    c = np.round(c_start - ((c_start - c_end) / max_iter) * current_iter, decimals=3)
-    V = a * V + (b * r1 * (p_best - X)) + (c * r2 * (g_best.reshape(-1, 1) - X))
-    X = X + V
-    # Update p_best and g_best
-    f_out = f(X[0], X[1])
-    for i in range(n_particles):
-        if(p_best_out[i] >= f_out[i]):
-            p_best[0,i] = X[0,i]
-            p_best[1,i] = X[1,i]
-    p_best_out = np.array([p_best_out, f_out]).min(axis=0)
-    g_best[0] = p_best[0, p_best_out.argmin()]
-    g_best[1] = p_best[1, p_best_out.argmin()]
-    g_best_out = p_best_out.min()
-
-
 #  ---------------- PARTICLE SWARM OPTIMIZATION -------------------
+
 # Set algorithm hyper-parameters
 a_start = 0.9 # good initial value = 0.9
 a_end = 0.4   # good initial value = 0.4
@@ -93,8 +70,31 @@ best_y = p_best[1, p_best_out.argmin()]
 g_best = np.array([best_x, best_y])
 g_best_out = p_best_out.min()
 
-#  ---------------- PLOTTING AND ANIMATING ITERATIONS-------------------
 
+# Function to do an iteration of PSO
+def particle_swarm_optimization(current_iter=1, a_start=0.9, a_end=0.9, b_start=2, b_end=0.1, c_start=2, c_end=0.1,
+            max_iter=1):
+    global V, X, p_best, p_best_out, g_best, g_best_out
+    r1, r2 = np.random.rand(2)
+    # decay values of a (value for current direction)
+    a = np.round(a_start - ((a_start - a_end) / max_iter) * current_iter, decimals=3)
+    # decay values of b and c (values for personal best and global best directions)
+    b = np.round(b_start - ((b_start - b_end) / max_iter) * current_iter, decimals=3)
+    c = np.round(c_start - ((c_start - c_end) / max_iter) * current_iter, decimals=3)
+    V = a * V + (b * r1 * (p_best - X)) + (c * r2 * (g_best.reshape(-1, 1) - X))
+    X = X + V
+    # Update p_best and g_best
+    f_out = f(X[0], X[1])
+    for i in range(n_particles):
+        if(p_best_out[i] >= f_out[i]):
+            p_best[0,i] = X[0,i]
+            p_best[1,i] = X[1,i]
+    p_best_out = np.array([p_best_out, f_out]).min(axis=0)
+    g_best[0] = p_best[0, p_best_out.argmin()]
+    g_best[1] = p_best[1, p_best_out.argmin()]
+    g_best_out = p_best_out.min()
+
+#  ---------------- PLOTTING AND ANIMATING ITERATIONS-------------------
 
 # Set-up contour plot
 x, y = np.array(np.meshgrid(np.linspace(plot_xlow, plot_xhigh, 1000), np.linspace(plot_ylow, plot_yhigh, 1000)))
@@ -144,7 +144,6 @@ anim = FuncAnimation(fig, animate, frames=list(range(1, max_iterations)), interv
     c_end,
     max_iterations))
 anim.save("PSO_{}.gif".format(opt_func), dpi=120, writer="ffmpeg")
-
 
 # For full transparency, we based our code for animation on the implementation in the following article: https://machinelearningmastery.com/a-gentle-introduction-to-particle-swarm-optimization/
 # While this code also uses PSO (how we found the article), we kept our logic for PSO and edited our implementation of the PSO algorithm to work with the animation functions
