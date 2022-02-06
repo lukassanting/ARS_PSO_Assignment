@@ -1,3 +1,4 @@
+# --------------------------------------------------------------------------
 # Implementation of this code was done by Thomas Bahne and Lukas Santing.
 # Implementation of gradient descent (seperate file) was done by Foti Kerkeshi
 
