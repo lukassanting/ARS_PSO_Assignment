@@ -18,19 +18,20 @@ def rastigrin(x, y):
 
 #  ---------------- PARTICLE SWARM OPTIMIZATION -------------------
 # Set algorithm hyper-parameters
-c1_start = c2_start = 1  # Good initial value = 1
-c1_end = c2_end = 0.1  # Good initial value = 0.5
-# w = 0.8
-inertia_start = 0.9
-inertia_end = 0.4
+a_start = 0.9 # good initial value = 0.9
+a_end = 0.4   # good initial value = 0.4
 
-# initialise random locations and velocities for the particles
+b_start = 1    # Good initial value = 1
+b_end = 0.1    # Good initial value = 0.1
+c_start = 1
+c_end = 0.1
+
+# Initialise random locations and velocities for the particles
 n_particles = 20
 np.random.seed()
 V = np.random.randn(2, n_particles) * 0.1  # vector values
 
-#  ---- SET VALUES THAT ARE DEPENDENT ON CHOSEN FUNCTION ----
-
+# VALUES ARE SET DEPENDENT ON CHOSEN FUNCTION
 # Set values of variables for algorithm and plot for optimising Rosenbrock algorithm
 if opt_func == "rosenbrock":
     f = rosenbrock
@@ -67,14 +68,16 @@ g_best_out = p_best_out.min()
 
 
 # Function to do an iteration of PSO
-def iterate(current_iter=1, inertia_start=0.9, inertia_end=0.9, c1_start=2, c1_end=0.1, c2_start=2, c2_end=0.1,
+def iterate(current_iter=1, a_start=0.9, a_end=0.9, b_start=2, b_end=0.1, c_start=2, c_end=0.1,
             max_iter=1):
-    w = np.round(inertia_start - ((inertia_start - inertia_end) / max_iter) * current_iter, decimals=3)
-    c1 = np.round(c1_start - ((c1_start - c1_end) / max_iter) * current_iter, decimals=3)
-    c2 = np.round(c2_start - ((c2_start - c2_end) / max_iter) * current_iter, decimals=3)
+    # decay values of a (AKA inertia: value for current direction)
+    a = np.round(a_start - ((a_start - a_end) / max_iter) * current_iter, decimals=3)
+    # decay values of b and c (values for personal best and global best)
+    b = np.round(b_start - ((b_start - b_end) / max_iter) * current_iter, decimals=3)
+    c = np.round(c_start - ((c_start - c_end) / max_iter) * current_iter, decimals=3)
     global V, X, p_best, p_best_out, g_best, g_best_out
     r1, r2 = np.random.rand(2)
-    V = w * V + (c1 * r1 * (p_best - X)) + (c2 * r2 * (g_best.reshape(-1, 1) - X))
+    V = a * V + (b * r1 * (p_best - X)) + (c * r2 * (g_best.reshape(-1, 1) - X))
     X = X + V
     # Update p_best and g_best
     f_out = f(X[0], X[1])
@@ -98,11 +101,11 @@ fig.colorbar(img, ax=ax)
 contours = ax.contour(x, y, z, 10, colors='black', alpha=0.4)
 ax.clabel(contours, inline=True, fontsize=8, fmt="%.0f")
 
-# Add particles
-ax.plot([x_min], [y_min], marker='x', markersize=5, color="black")  # global minimum shown as 'x'
-p_current = ax.scatter(X[0], X[1], marker='o', color="blue")
-p_arrows = ax.quiver(X[0], X[1], V[0], V[1], color='blue', width=0.005)
-p_g_best = plt.scatter([g_best[0]], [g_best[1]], marker='*', s=100, color='black', alpha=0.4)
+# Add particles to plot
+ax.plot([x_min], [y_min], marker='x', markersize=5, color="black")          # global minimum shown as 'x'
+p_current = ax.scatter(X[0], X[1], marker='o', color="blue")                # current particle locations
+p_arrows = ax.quiver(X[0], X[1], V[0], V[1], color='blue', width=0.005)     # vectors of particles
+p_g_best = plt.scatter([g_best[0]], [g_best[1]], marker='*', s=100, color='black', alpha=0.4) # global best
 ax.set_xlim([plot_xlow, plot_xhigh])
 ax.set_ylim([plot_ylow, plot_yhigh])
 
@@ -111,12 +114,12 @@ ax.set_ylim([plot_ylow, plot_yhigh])
 def animate(i, *fargs):
     title = 'Iteration {:02d}'.format(i)
     iterate(current_iter=i,
-            inertia_start=fargs[0],
-            inertia_end=fargs[1],
-            c1_start=fargs[2],
-            c1_end=fargs[3],
-            c2_start=fargs[4],
-            c2_end=fargs[5],
+            a_start=fargs[0],
+            a_end=fargs[1],
+            b_start=fargs[2],
+            b_end=fargs[3],
+            c_start=fargs[4],
+            c_end=fargs[5],
             max_iter=fargs[6])
     ax.set_title(title)
     p_current.set_offsets(X.T)
@@ -128,14 +131,14 @@ def animate(i, *fargs):
 
 max_iterations = 250
 anim = FuncAnimation(fig, animate, frames=list(range(1, max_iterations)), interval=150, blit=False, repeat=True, fargs=(
-    inertia_start,
-    inertia_end,
-    c1_start,
-    c1_end,
-    c2_start,
-    c2_end,
+    a_start,
+    a_end,
+    b_start,
+    b_end,
+    c_start,
+    c_end,
     max_iterations))
 anim.save("PSO_{}.gif".format(opt_func), dpi=120, writer="ffmpeg")
 
-print("PSO found best solution at ({})={}".format(g_best, g_best_out))
-print("Global optimal at ({})={}".format([x_min, y_min], f(x_min, y_min)))
+print("PSO found best solution at {}({})={}".format(opt_func, g_best, g_best_out))
+print("Global optimal at {}({})= {}".format( opt_func, [x_min, y_min], f(x_min, y_min)))
