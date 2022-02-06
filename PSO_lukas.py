@@ -1,3 +1,6 @@
+# Implementation of this code was done by Thomas Bahne and Lukas Santing.
+# Implementation of gradient descent (seperate file) was done by Foti Kerkeshi
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
@@ -96,7 +99,10 @@ def particle_swarm_optimization(current_iter=1, a_start=0.9, a_end=0.9, b_start=
 
 #  ---------------- PLOTTING AND ANIMATING ITERATIONS-------------------
 
-# Set-up contour plot
+# For full transparency, we based our code for animation on the implementation in the following article: https://machinelearningmastery.com/a-gentle-introduction-to-particle-swarm-optimization/
+# While this code also uses PSO (how we found the article), we kept our logic for PSO and edited our implementation of the PSO algorithm to work with the animation functions
+
+# Set-up contour plot of function
 x, y = np.array(np.meshgrid(np.linspace(plot_xlow, plot_xhigh, 1000), np.linspace(plot_ylow, plot_yhigh, 1000)))
 z = f(x, y)
 x_min = x.ravel()[z.argmin()]
@@ -145,5 +151,4 @@ anim = FuncAnimation(fig, animate, frames=list(range(1, max_iterations)), interv
     max_iterations))
 anim.save("PSO_{}.gif".format(opt_func), dpi=120, writer="ffmpeg")
 
-# For full transparency, we based our code for animation on the implementation in the following article: https://machinelearningmastery.com/a-gentle-introduction-to-particle-swarm-optimization/
-# While this code also uses PSO (how we found the article), we kept our logic for PSO and edited our implementation of the PSO algorithm to work with the animation functions
+print("Global best found at: {}".format(g_best))
