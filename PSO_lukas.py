@@ -18,8 +18,8 @@ def rastigrin(x, y):
 
 #  ---------------- PARTICLE SWARM OPTIMIZATION -------------------
 # Set algorithm hyper-parameters
-c1_start = c2_start = 2  # Good initial value = 1
-c1_end = c2_end = 0.5  # Good initial value = 0.5
+c1_start = c2_start = 1  # Good initial value = 1
+c1_end = c2_end = 0.1  # Good initial value = 0.5
 # w = 0.8
 inertia_start = 0.9
 inertia_end = 0.4
