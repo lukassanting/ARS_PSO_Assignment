@@ -1,0 +1,106 @@
+Observations:
+
+---------------------------------------
+1. Degradation/Decay of a, b & c values
+---------------------------------------
+The a, b, and c-values together represent the space within which a particle searches at each iteration.
+Lower a means it goes less far in current direction, lower b means it goes less far in the direction of personal best
+lower c means it goes less far in direction of global best.
+
+As baseline, all three set to 0.5, 250 iterations:
+ - rastigrin: No convergence to true optimum, plus hanging particles
+ - rosenbrock: No convergence to true optimum, plus hanging particles
+
+** EXP 1: a decays from 0.9 to 0.1, b & c set the same **
+We tested the values for b & c when set identically to high numbers, such as 2, and to low values, such as 0.1.
+
+Rosenbrock converges well at high values, but only partially converges at low values ("hanging particles")
+Rastigrin does not converge at all at high values, and also partially converges at low values.
+For both functions, a degrading value (i.e. 2 to 0.5, 1 to 0.1) for c works best.
+
+Setting a,b,c to be high lets it explore more, degrading to low values helps it converge, -
+but if they degrade before they find the global optimum then they will never find it and converge to it.
+
+Conclusion 1: All three decaying works great, only one decaying often does not converge to global optimum.
+Conclusion 2: Having c higher than b results is convergence...
+
+** EXP 2: a decays from 0.9 to 0.4, b & c are set differently**
+Q: What happens when c is higher than b (expectation: global best valued more)
+
+ Rosenbrock:
+  - Fixed high c and low b: convergence
+  - Fixed low c and high b: partial convergence, finds global optimal but a few hanging particles
+ Rastigrin
+  - Fixed high c and low b: convergence
+  - Fixed low c and high b: partial convergence
+Q: What happens when b & c both decay, one faster than other?
+ Rosenbrock
+  - Decay high c and low b: convergence
+  - Decay low c and high b: convergence
+ Rastrigin
+  - Decay high c and low b: no convergence
+  - Decay low c and high b: convergence
+
+** EXP 3: a is fixed to a certain value, b & c decay **
+Q: Difference between decaying a vs. no decay a, on different values of b & c?
+Rastigrin:
+ - a fixed, b (low) and c (high) decay, there is no convergence
+ - a fixed, b and c same decay: convergence
+Rosenbrock
+ - a fixed, b and c same decay: convergence
+
+Conclusion 0: When none decay, there is not always convergence.
+              High values of a, b and c converge to almost global optimum however - not perfect.
+Conclusion 1: All three decaying works great, only one decaying often does not converge to global optimum.
+Conclusion 2: For Rosenbrock, having a fixed higher b than c did not converge.
+              Other examples, including swapping which is higher or adding decay, did converge.
+              For Rastigrin, having c higher than b did not converge, for both fixed and with decay.
+              Having b higher than c partially converged when fixed, and did converge with decay.
+              Conclusion:
+               - For Rosenbrock, the problem is slightly easier to solve in general,
+                 but higher tendency towards global best instead of personal is better.
+                 However, adding decay for these makes it always converge.
+               - For Rastigrin, the problem is slightly harder to solve than Rosenbrock,
+                 but higher tendency to personal best tends to be more important than global best.
+                 Decay does not change this, but is necessary to prevent 'hanging particles'.
+Conclusion 3: When both b and c decay at same rate, there is always convergence, even if a is not decaying.
+
+----------------------------
+2. Random start of particles
+----------------------------
+Took co-ordinates, added bias_x and bias_y (pushing it from / pulling it to 0)
+Decaying a 0.9 to 0.4
+Fixed b & c at 1
+
+With low experimentation:
+With equal x_bias and y_bias, usually converges
+Unequal x and y_bias does not always converge
+ - maybe due to fact that fns. are symmetrical, and expect symmetrical bias
+
+
+No x_bias, high neg y_bias: doesn't converge Rosenbrock
+ - starting swinging on pendulum
+ - high pos y_bias similar, but does converge
+
+High x_bias, no y_bias: doesn't converge Rastigrin
+
+---------------------------
+3. Gradient Descent vs. PSO
+---------------------------
+Comparison metrics:
+ - Compare number of iterations before converges (close) to global optimum?
+ - Error: distance to global optimum
+
+Expectations:
+ - Gradient descent doesn't find rastigrin
+ - Gradient descent does find rosenbrock
+
+GD Observations:
+Rosenbrock
+ - Finds the optimum if parameters are chosen reasonably
+ - Learning rate has a huge impact on ability to find minimum at all and also time of convergence
+ - Learning rate 0.001 works well
+ - 3500 iterations with this lr to convergence
+
+Rastigrin
+ - Does not converge to global optimum
