@@ -1,5 +1,6 @@
 from audioop import mul
 from turtle import shape
+from anyio import wait_all_tasks_blocked
 import numpy as np
 from sklearn import multiclass
 from sympy import multiplicity
@@ -7,10 +8,32 @@ from vpython import *
 
 # ---------- Motion Model ---------- #
 
+class distance_sensor():
+    def __init__(self, offset, wall_north, wall_east, wall_south, wall_west, radius_robot) -> None:
+        # offset is the angle (counter-clockwise) the sensor faces away from the direction of the robot
+        # offset should be given in radians
+        # "wall" parameters should be a list of two tuples, indicting the end-points of the wall
+        self._offset = offset # direction in which the sensor is pointing
+        self._nwall = wall_north
+        self._ewall = wall_east
+        self._swall = wall_south
+        self._wwall = wall_west
+        self._r = radius_robot
+    
+    def pos_sensor(self, pos_robot):
+        theta = pos_robot[2]+self._offset
+        pos_sensor = np.array([pos_robot[0]+np.cos(theta)*self._r, pos_robot[1]+np.cos(theta)*self._r, theta])
+        return pos_sensor
+
+    def dist_to_wall():
+        # still to be implemented
+        pass
+
+
 class robot():
     """Class for the two-wheeled robot
     """
-    def __init__(self, pos, distance_between_wheels, current_time=0) -> None:
+    def __init__(self, pos, distance_between_wheels, current_time=0, acceleration=1) -> None:
         assert distance_between_wheels>0, 'Distance between wheels must be positive'
         self._pos = pos # position should be given in the form [x,y,theta] with theta given in radians not degrees
         self._time = current_time
@@ -19,6 +42,7 @@ class robot():
         self._vel_left = 0
         self._rot_rate = 0 # corresponds to omega in slides
         self._rot_radius = 0 # corresponds to (uppercase) R in slides
+        self._acc = acceleration
 
     @property
     def pos(self):
@@ -36,79 +60,105 @@ class robot():
     def time(self):
         return self._time
         
-    def timestep(self):
-        self._time += 1
-        self.move()
+    def timestep(self, time_elapsed=1):
+        self.move(time_elapsed)
+        self._time += time_elapsed
 
     @property
     def vel_right(self):
-        return self._vel_right
+        return self._vel_right  
 
-    def accel_left(self):
-        self._vel_left += 1
-        self.update_rot_rate()
-        self.update_rot_radius()           
-
-    def decel_left(self):
-        self._vel_left -= 1
+    def accel_right(self, verbose=False):
+        self._vel_right = np.round(self._vel_right+self._acc, 4)
         self.update_rot_rate()
         self.update_rot_radius()
+        if verbose:
+            print(f'Accelerating right: {self._vel_right}, rotation rate: {self._rot_rate}, rotation radius: {self._rot_radius}')        
+
+    def decel_right(self, verbose=False):
+        self._vel_right = np.round(self._vel_right-self._acc, 4)
+        self.update_rot_rate()
+        self.update_rot_radius()
+        if verbose:
+            print(f'Decelerating right: {self._vel_right}, rotation rate: {self._rot_rate}, rotation radius: {self._rot_radius}')  
 
     @property
     def vel_left(self):
         return self._vel_right
 
-    def accel_right(self):
-        self._vel_right += 1
+    def accel_left(self, verbose=False):
+        self._vel_left = np.round(self._vel_left+self._acc, 4)
         self.update_rot_rate()
-        self.update_rot_radius()
+        self.update_rot_radius()    
+        if verbose:
+            print(f'Accelerating left: {self._vel_left}, rotation rate: {self._rot_rate}, rotation radius: {self._rot_radius}')           
 
-    def decel_right(self):
-        self._vel_right -= 1
+    def decel_left(self, verbose=False):
+        self._vel_left = np.round(self._vel_left-self._acc, 4)
         self.update_rot_rate()
         self.update_rot_radius()
+        if verbose:
+            print(f'Decelerating left: {self._vel_left}, rotation rate: {self._rot_rate}, rotation radius: {self._rot_radius}')  
 
     @property
     def rot_rate(self):
         return self._rot_rate
 
     def update_rot_rate(self):
-        self._rot_rate = (self._vel_right - self._vel_left)/self._l
+        self._rot_rate = np.round(((self._vel_right - self._vel_left)/self._l), 4)
 
     @property
     def rot_radius(self):
         return self._rot_radius
 
     def update_rot_radius(self):
-        if (self._vel_right == 0) & (self._vel_left==0):
+        if self._vel_right == self._vel_left:
             self._rot_radius = np.Inf
-        elif self._vel_right == self._vel_left:
-            self._rot_radius = self._l/2
+        elif (self._vel_right == 0) or (self._vel_left==0):
+            self._rot_radius = np.round(self._l/2,4)
         else:
-            self._rot_radius = (self._vel_right - self._vel_left)/self._l
+            self._rot_radius = np.round((self._vel_right - self._vel_left)/self._l, 4)
+        print(f'Updated R: {self.rot_radius}')
 
-    def move(self):
+    def move(self, time_elapsed, verbose=False) -> None:
         """Method that performs moving the robot one time-step forward.
         The time step is defined to be delta*t = 1 to calculate the rotation matrix.
         """
+        if self._rot_radius == np.Inf:
+            print(f'old position: {self._pos}')
+            print(f'Norm of directional vector: {np.linalg.norm(self._pos[:-1])}')
+            vel_forward = np.round((self._vel_right+self._vel_left)/2, 4)
+            move_x = np.round(np.cos(self.pos[2])*np.abs(vel_forward), 4)
+            move_y = np.round(np.sin(self.pos[2])*np.abs(vel_forward), 4)
+            self._pos = self._pos + [move_x, move_y, 0]
+            print(f'movement along x-axis: {move_x}')
+            print(f'movement along y-axis: {move_y}')
+            print(f'new position: {self._pos}')            
+            return
+
+        dt = time_elapsed
         pos_icc = np.array([
             self._pos[0]-self._rot_radius*np.sin(self._pos[2]), 
             self._pos[1]+self._rot_radius*np.cos(self._pos[2])])
-        print(f'position of ICC: {pos_icc}')
-        print(f'shape of ICC: {pos_icc.shape}')
-        print()
         rot_matrix = np.array([
-            [np.cos(self._rot_rate), -np.sin(self._rot_rate), 0],
-            [np.sin(self._rot_rate), np.cos(self._rot_rate), 0],
+            [np.cos(self._rot_rate*dt), -np.sin(self._rot_rate*dt), 0],
+            [np.sin(self._rot_rate*dt), np.cos(self._rot_rate*dt), 0],
             [0, 0, 1]
         ], dtype='float')
-        print(f'rotation matrix: {rot_matrix}')
-        print(f'shape of matrix: {rot_matrix.shape}')
-        print()
         multiplier = np.array([self._pos[0]-pos_icc[0], self._pos[1]-pos_icc[1], self._pos[2]], dtype='float')
-        print(f'multiplier: {multiplier}')
-        print(f'shape of multiplier: {multiplier.shape}')
-        print()
-        self._pos = np.dot(rot_matrix, np.transpose(multiplier))+np.append(pos_icc, self._rot_rate)
-        print(f'new position: {self._pos}')
-        print()
+        self._pos = np.dot(rot_matrix, np.transpose(multiplier))+np.append(pos_icc, self._rot_rate*dt)
+        if verbose:
+            print(f'position of ICC: {pos_icc}')
+            print(f'shape of ICC: {pos_icc.shape}')
+            print()
+            print(f'rotation matrix: {rot_matrix}')
+            print(f'shape of matrix: {rot_matrix.shape}')
+            print()
+            print(f'multiplier: {multiplier}')
+            print(f'shape of multiplier: {multiplier.shape}')
+            print()
+            print(f'new position: {self._pos}')
+            print()
+
+    def time_until_collision():
+        pass
