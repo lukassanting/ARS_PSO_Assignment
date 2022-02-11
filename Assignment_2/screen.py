@@ -1,5 +1,5 @@
 from vpython import *
-from motion_model_updated import robot
+from motion_model import robot
 
 scene = canvas(title='Robot Simulator', width=400, height=400, center=vector(0, 0, 0), background=color.white)
 ball = sphere(pos=vector(0, 0, 0), radius=1, color=color.green)
@@ -17,7 +17,8 @@ lower_wall = box(pos=vector(0, -20, 0), size=vector(wall_length - wall_width, wa
 bot = robot([0, 0, 0], 1)
 
 def simulation():
-    while (True):
+    i = 0
+    while (i<3000):
         rate(30)
         k = keysdown()
         if 'w' in k: bot.accel_left()
@@ -31,7 +32,8 @@ def simulation():
             bot.decel_left()
             bot.decel_right()
         bot.timestep()
-        ball.pos = bot.pos()
+        ball.pos = bot.get_pos_vpython()
+        i += 1
 
 
 simulation()
