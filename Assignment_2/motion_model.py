@@ -33,7 +33,7 @@ class distance_sensor():
 class robot():
     """Class for the two-wheeled robot
     """
-    def __init__(self, pos, distance_between_wheels, current_time=0, acceleration=1) -> None:
+    def __init__(self, pos, distance_between_wheels, current_time=0, acceleration=0.01) -> None:
         assert distance_between_wheels>0, 'Distance between wheels must be positive'
         self._pos = pos # position should be given in the form [x,y,theta] with theta given in radians not degrees
         self._time = current_time
@@ -64,6 +64,13 @@ class robot():
         self.move(time_elapsed)
         self._time += time_elapsed
 
+    def reset(self):
+        self._vel_right = 0
+        self._vel_left = 0
+        self._rot_rate = 0
+        self._rot_radius = 0
+
+
     @property
     def vel_right(self):
         return self._vel_right  
@@ -80,7 +87,7 @@ class robot():
         self.update_rot_rate()
         self.update_rot_radius()
         if verbose:
-            print(f'Decelerating right: {self._vel_right}, rotation rate: {self._rot_rate}, rotation radius: {self._rot_radius}')  
+            print(f'Decelerating right: {self._vel_right}, rotation rate: {self._rot_rate}, rotation radius: {self._rot_radius}')
 
     @property
     def vel_left(self):
@@ -98,7 +105,25 @@ class robot():
         self.update_rot_rate()
         self.update_rot_radius()
         if verbose:
-            print(f'Decelerating left: {self._vel_left}, rotation rate: {self._rot_rate}, rotation radius: {self._rot_radius}')  
+            print(f'Decelerating left: {self._vel_left}, rotation rate: {self._rot_rate}, rotation radius: {self._rot_radius}')
+
+    def accel_both(self, verbose=False):
+        self._vel_right = np.round(self._vel_right+self._acc, 4)
+        self._vel_left = np.round(self._vel_left+self._acc, 4)
+        self.update_rot_rate()
+        self.update_rot_radius()
+        if verbose:
+            print(f'Accelerating right: {self._vel_right}, rotation rate: {self._rot_rate}, rotation radius: {self._rot_radius}')
+            print(f'Accelerating left: {self._vel_left}, rotation rate: {self._rot_rate}, rotation radius: {self._rot_radius}')
+
+    def decel_both(self, verbose=False):
+        self._vel_right = np.round(self._vel_right-self._acc, 4)
+        self._vel_left = np.round(self._vel_left-self._acc, 4)
+        self.update_rot_rate()
+        self.update_rot_radius()
+        if verbose:
+            print(f'Decelerating left: {self._vel_left}, rotation rate: {self._rot_rate}, rotation radius: {self._rot_radius}')
+            print(f'Decelerating right: {self._vel_right}, rotation rate: {self._rot_rate}, rotation radius: {self._rot_radius}')
 
     @property
     def rot_rate(self):

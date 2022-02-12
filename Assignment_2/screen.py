@@ -26,12 +26,9 @@ def simulation(animation_rate):
         if 's' in k: bot.decel_left(verbose=True)
         if 'o' in k: bot.accel_right(verbose=True)
         if 'l' in k: bot.decel_right(verbose=True)
-        if 'y' in k:
-            bot.accel_left(verbose=True)
-            bot.accel_right(verbose=True)
-        if 'h' in k:
-            bot.decel_left(verbose=True)
-            bot.decel_right(verbose=True)
+        if 'y' in k: bot.accel_both(verbose=True)
+        if 'h' in k: bot.decel_both(verbose=True)
+        if 'x' in k: bot.reset()
         bot.timestep(1/animation_rate)
         ball.pos = bot.get_pos_vpython()
         i += 1
