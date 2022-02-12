@@ -30,10 +30,10 @@ class Bot():
     """" Class for a moveable robot (circle) in PyMunk using the motion_model Robot class
     """
     def __init__(self):
-        self.body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
+        self.body = pymunk.Body()
         self.robot = robot([middle_x, middle_y, 0], bot_radius * 2)
         self.body.position = self.robot._pos[0], self.robot._pos[1]
-        self.body.velocity = self.robot._vel_left, self.robot._vel_right
+        #self.body.velocity = self.robot._vel_left, self.robot._vel_right
         self.shape = pymunk.Circle(self.body, bot_radius)
         self.shape.density = 1
         self.shape.elasticity = 0;  # no 'bounce'
@@ -52,7 +52,7 @@ class Bot():
         if key == pygame.K_y: self.robot.accel_both()
         if key == pygame.K_h: self.robot.decel_both()
         if key == pygame.K_x: self.robot.reset()
-        self.body.position = self.robot._pos[0], self.robot._pos[1]
+        #self.body.position = self.robot._pos[0], self.robot._pos[1]
         self.body.velocity = self.robot._vel_left, self.robot._vel_right
 
 
@@ -74,9 +74,9 @@ class Wall():
 def simulation():
     # set events that can happen while in the display window
     bot = Bot()
-    wall_left = Wall([left, top], [left, bottom], 2)
-    wall_right = Wall([right, top], [right, bottom], 2)
-    wall_top = Wall([left, top], [right, top], 2)
+    wall_left = Wall([left, top], [left, bottom], 1)
+    wall_right = Wall([right, top], [right, bottom], 1)
+    wall_top = Wall([left, top], [right, top])
     wall_bottom = Wall([left, bottom], [right, bottom])
     while True:
         for event in pygame.event.get():

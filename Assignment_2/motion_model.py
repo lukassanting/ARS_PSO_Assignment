@@ -33,7 +33,7 @@ class distance_sensor():
 class robot():
     """Class for the two-wheeled robot
     """
-    def __init__(self, pos, distance_between_wheels, current_time=0, acceleration=0.1) -> None:
+    def __init__(self, pos, distance_between_wheels, current_time=0, acceleration=10) -> None:
         assert distance_between_wheels>0, 'Distance between wheels must be positive'
         self._pos = pos # position should be given in the form [x,y,theta] with theta given in radians not degrees
         self._time = current_time
