@@ -12,7 +12,7 @@ class distance_sensor():
     def __init__(self, offset, wall_north, wall_east, wall_south, wall_west, radius_robot) -> None:
         # offset is the angle (counter-clockwise) the sensor faces away from the direction of the robot
         # offset should be given in radians
-        # "wall" parameters should be a list of two tuples, indicting the end-points of the wall
+        # "wall" parameters should be a list of two tuples, indicating the end-points of the wall
         self._offset = offset # direction in which the sensor is pointing
         self._nwall = wall_north
         self._ewall = wall_east
@@ -22,11 +22,27 @@ class distance_sensor():
     
     def pos_sensor(self, pos_robot):
         theta = pos_robot[2]+self._offset
-        pos_sensor = np.array([pos_robot[0]+np.cos(theta)*self._r, pos_robot[1]+np.cos(theta)*self._r, theta])
-        return pos_sensor
+        start_pos_sensor = np.array([pos_robot[0]+np.cos(theta)*self._r, pos_robot[1]+np.cos(theta)*self._r, theta])
+        end_pos_sensor = np.add(start_pos_sensor, np.array([self._r * np.cos(theta), self._r * np.sin(theta), 0]))
+        
+        print(f'start_pos_sensor: {start_pos_sensor}\n end_pos_sensor: {end_pos_sensor}')
+
+        return [start_pos_sensor, end_pos_sensor]
 
     def radians_to_degrees(self, angle):
         return angle*(np.pi/180)
+
+    def get_pos_vpython(self, pos_robot) -> tuple:
+        """
+            returns the position of the sensor
+
+            Returns:
+                tuple: tuple of vectors for start and end points, where z-coordinate is 0 to simulate 2D
+        """
+
+        start, end = self.pos_sensor(pos_robot)
+
+        return vector(start[0], start[1], 0), vector(end[0], end[1], 0)
 
     def dist_to_wall(self, pos_robot):
         # equation of "sensor line", i.e. a line that simulates the infrared beam that the distance sensor sends out
@@ -34,7 +50,7 @@ class distance_sensor():
         # infrared beam as well as out of the "back" of the robot
 
         # determining the slope given a point and an angle: https://math.stackexchange.com/questions/105770/find-the-slope-of-a-line-given-a-point-and-an-angle
-        slope = np.tan(np.arctan(pos_robot[1]/pos_robot[2]) - self.radians_to_degrees(pos_robot[2]))
+        # slope = np.tan(np.arctan(pos_robot[1]/pos_robot[2]) - self.radians_to_degrees(pos_robot[2]))
         
         # calculating points of intersection
         # still to be implemented
@@ -74,8 +90,8 @@ class robot():
         return self._time
         
     def timestep(self, time_elapsed=1):
-        self.move_mouhknowsbest(time_elapsed)
-        #self.move(time_elapsed)
+        # self.move_mouhknowsbest(time_elapsed)
+        self.move(time_elapsed)
         self._time += time_elapsed
 
     def stop(self):
