@@ -25,13 +25,25 @@ class distance_sensor():
         pos_sensor = np.array([pos_robot[0]+np.cos(theta)*self._r, pos_robot[1]+np.cos(theta)*self._r, theta])
         return pos_sensor
 
-    def dist_to_wall():
+    def radians_to_degrees(self, angle):
+        return angle*(np.pi/180)
+
+    def dist_to_wall(self, pos_robot):
+        # equation of "sensor line", i.e. a line that simulates the infrared beam that the distance sensor sends out
+        # note that the line is not just the infrared beam, but a geometric line that extends in both directions, so in the direction of the
+        # infrared beam as well as out of the "back" of the robot
+
+        # determining the slope given a point and an angle: https://math.stackexchange.com/questions/105770/find-the-slope-of-a-line-given-a-point-and-an-angle
+        slope = np.tan(np.arctan(pos_robot[1]/pos_robot[2]) - self.radians_to_degrees(pos_robot[2]))
+        
+        # calculating points of intersection
         # still to be implemented
         pass
 
 
 class robot():
     """Class for the two-wheeled robot
+    Assumes the radius of the tires to be equal to 1
     """
     def __init__(self, pos, distance_between_wheels, current_time=0, acceleration=10) -> None:
         assert distance_between_wheels>0, 'Distance between wheels must be positive'
@@ -52,7 +64,7 @@ class robot():
         """returns the position of the center of the robot as it is used in VPython
 
         Returns:
-            np.ndarray: 3D-coordinates of center of robot, where y-coordinate is 0 to simulate 2D
+            np.ndarray: 3D-coordinates of center of robot, where z-coordinate is 0 to simulate 2D
         """           
         return vector(self._pos[0], self._pos[1], 0)
 
@@ -61,7 +73,8 @@ class robot():
         return self._time
         
     def timestep(self, time_elapsed=1):
-        self.move(time_elapsed)
+        self.move_mouhknowsbest(time_elapsed)
+        #self.move(time_elapsed)
         self._time += time_elapsed
 
     def reset(self):
@@ -76,14 +89,14 @@ class robot():
         return self._vel_right  
 
     def accel_right(self, verbose=False):
-        self._vel_right = np.round(self._vel_right+self._acc, 4)
+        self._vel_right = np.round(self._vel_right+self._acc, decimals=8)
         self.update_rot_rate()
         self.update_rot_radius()
         if verbose:
             print(f'Accelerating right: {self._vel_right}, rotation rate: {self._rot_rate}, rotation radius: {self._rot_radius}')        
 
     def decel_right(self, verbose=False):
-        self._vel_right = np.round(self._vel_right-self._acc, 4)
+        self._vel_right = np.round(self._vel_right-self._acc, decimals=8)
         self.update_rot_rate()
         self.update_rot_radius()
         if verbose:
@@ -94,7 +107,7 @@ class robot():
         return self._vel_right
 
     def accel_left(self, verbose=False):
-        self._vel_left = np.round(self._vel_left+self._acc, 4)
+        self._vel_left = np.round(self._vel_left+self._acc, decimals=8)
         self.update_rot_rate()
         self.update_rot_radius()    
         if verbose:
@@ -108,8 +121,8 @@ class robot():
             print(f'Decelerating left: {self._vel_left}, rotation rate: {self._rot_rate}, rotation radius: {self._rot_radius}')
 
     def accel_both(self, verbose=False):
-        self._vel_right = np.round(self._vel_right+self._acc, 4)
-        self._vel_left = np.round(self._vel_left+self._acc, 4)
+        self._vel_right = np.round(self._vel_right+self._acc, decimals=8)
+        self._vel_left = np.round(self._vel_left+self._acc, decimals=8)
         self.update_rot_rate()
         self.update_rot_radius()
         if verbose:
@@ -117,8 +130,8 @@ class robot():
             print(f'Accelerating left: {self._vel_left}, rotation rate: {self._rot_rate}, rotation radius: {self._rot_radius}')
 
     def decel_both(self, verbose=False):
-        self._vel_right = np.round(self._vel_right-self._acc, 4)
-        self._vel_left = np.round(self._vel_left-self._acc, 4)
+        self._vel_right = np.round(self._vel_right-self._acc, decimals=8)
+        self._vel_left = np.round(self._vel_left-self._acc, decimals=8)
         self.update_rot_rate()
         self.update_rot_radius()
         if verbose:
@@ -130,31 +143,37 @@ class robot():
         return self._rot_rate
 
     def update_rot_rate(self):
-        self._rot_rate = np.round(((self._vel_right - self._vel_left)/self._l), 4)
+        self._rot_rate = np.round(((self._vel_right - self._vel_left)/self._l), decimals=8)
 
     @property
     def rot_radius(self):
         return self._rot_radius
 
-    def update_rot_radius(self):
+    def update_rot_radius(self, verbose=False):
         if self._vel_right == self._vel_left:
             self._rot_radius = np.Inf
-        elif (self._vel_right == 0) or (self._vel_left==0):
-            self._rot_radius = np.round(self._l/2,4)
+        elif self._vel_right == 0:
+            self._rot_radius = -1*np.round(self._l/2, decimals=8)
+        elif self._vel_left==0:
+            self._rot_radius = np.round(self._l/2, decimals=8)
         else:
-            self._rot_radius = np.round((self._vel_right - self._vel_left)/self._l, 4)
-        print(f'Updated R: {self.rot_radius}')
+            self._rot_radius = np.round((self._vel_right - self._vel_left)/self._l, decimals=8)
+
+        if verbose:
+            print(f'Updated R: {self.rot_radius}')
 
     def move(self, time_elapsed, verbose=False) -> None:
         """Method that performs moving the robot one time-step forward.
-        The time step is defined to be delta*t = 1 to calculate the rotation matrix.
+        The time step is defined to be delta*t = time_elapsed to calculate the rotation matrix.
         """
+        if (self._vel_right == 0) and (self._vel_left==0):
+            return
         if self._rot_radius == np.Inf:
             print(f'old position: {self._pos}')
             print(f'Norm of directional vector: {np.linalg.norm(self._pos[:-1])}')
-            vel_forward = np.round((self._vel_right+self._vel_left)/2, 4)
-            move_x = np.round(np.cos(self.pos[2])*np.abs(vel_forward), 4)
-            move_y = np.round(np.sin(self.pos[2])*np.abs(vel_forward), 4)
+            vel_forward = np.round(self._vel_right, decimals=8)
+            move_x = np.round(np.cos(self.pos[2])*np.abs(vel_forward), decimals=8)
+            move_y = np.round(np.sin(self.pos[2])*np.abs(vel_forward), decimals=8)
             self._pos = self._pos + [move_x, move_y, 0]
             print(f'movement along x-axis: {move_x}')
             print(f'movement along y-axis: {move_y}')
@@ -187,3 +206,13 @@ class robot():
 
     def time_until_collision():
         pass
+
+    def move_mouhknowsbest(self, time_elapsed):
+        # new attempt at the move function, as the old one has issues
+        # https://www.youtube.com/watch?v=aE7RQNhwnPQ
+        # define radius of the wheel to be 1:
+        vel_forward = np.round((self._vel_right+self._vel_left)/2, decimals=8)
+        deriv_x = 0.5*(vel_forward)*np.cos(self._pos[2])
+        deriv_y = 0.5*(vel_forward)*np.sin(self._pos[2])
+        deriv_theta = (1/self._l)*(self._vel_right-self._vel_left)
+        self._pos = self._pos + time_elapsed*np.array([deriv_x, deriv_y, deriv_theta])
