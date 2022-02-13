@@ -47,6 +47,7 @@ class robot():
     """
     def __init__(self, pos, distance_between_wheels, current_time=0, acceleration=10) -> None:
         assert distance_between_wheels>0, 'Distance between wheels must be positive'
+        self._start = pos
         self._pos = pos # position should be given in the form [x,y,theta] with theta given in radians not degrees
         self._time = current_time
         self._l = distance_between_wheels
@@ -77,12 +78,15 @@ class robot():
         #self.move(time_elapsed)
         self._time += time_elapsed
 
-    def reset(self):
+    def stop(self):
         self._vel_right = 0
         self._vel_left = 0
         self._rot_rate = 0
         self._rot_radius = 0
 
+    def reset(self):
+        self.stop()
+        self._pos = self._start
 
     @property
     def vel_right(self):

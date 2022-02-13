@@ -1,7 +1,7 @@
 import pymunk
 import pygame
-import motion_model
-from motion_model import robot
+import math
+from motion_model import *
 
 # --- Initialise pygame and make a display appear
 pygame.init()
@@ -12,7 +12,9 @@ display = pygame.display.set_mode((600, 600))
 space = pymunk.Space()
 # Create clock object for setting the frame-rate for display update
 clock = pygame.time.Clock()
-FPS = 50
+FPS = 60
+
+image = pygame.image.load("circle.png")
 
 left = top = 10
 right = bottom = 590
@@ -31,7 +33,7 @@ class Bot():
     """
     def __init__(self):
         self.body = pymunk.Body()
-        self.robot = robot([middle_x, middle_y, 0], bot_radius * 2)
+        self.robot = robot([middle_x, middle_y, 0], bot_radius * 2, acceleration=10)
         self.body.position = self.robot._pos[0], self.robot._pos[1]
         #self.body.velocity = self.robot._vel_left, self.robot._vel_right
         self.shape = pymunk.Circle(self.body, bot_radius)
@@ -42,18 +44,23 @@ class Bot():
 
     def draw(self):
         x, y = self.body.position
-        pygame.draw.circle(display, black, (int(x), int(y)), bot_radius)
+        angle = math.degrees(self.robot._pos[2])
+        display.blit(pygame.transform.rotate(image, angle), [(int(x) - 15), (int(y)- 15)])
+        #pygame.draw.circle(display, black, (int(x), int(y)), bot_radius)
 
-    def move(self, key):
-        if key == pygame.K_w: self.robot.accel_left()
-        if key == pygame.K_s: self.robot.decel_left()
-        if key == pygame.K_o: self.robot.accel_right()
-        if key == pygame.K_l: self.robot.decel_right()
-        if key == pygame.K_y: self.robot.accel_both()
-        if key == pygame.K_h: self.robot.decel_both()
-        if key == pygame.K_x: self.robot.reset()
-        #self.body.position = self.robot._pos[0], self.robot._pos[1]
-        self.body.velocity = self.robot._vel_left, self.robot._vel_right
+    def move(self, key=None):
+        if key:
+            if key == pygame.K_w: self.robot.accel_left()
+            if key == pygame.K_s: self.robot.decel_left()
+            if key == pygame.K_o: self.robot.accel_right()
+            if key == pygame.K_l: self.robot.decel_right()
+            if key == pygame.K_y: self.robot.accel_both()
+            if key == pygame.K_h: self.robot.decel_both()
+            if key == pygame.K_x: self.robot.stop()
+            if key == pygame.K_r: self.robot.reset()
+        self.robot.timestep(1/FPS)
+        self.body.position = self.robot._pos[0], self.robot._pos[1]
+        #self.body.velocity = self.robot._vel_left, self.robot._vel_right
 
 
 class Wall():
@@ -79,13 +86,14 @@ def simulation():
     wall_top = Wall([left, top], [right, top])
     wall_bottom = Wall([left, bottom], [right, bottom])
     while True:
+        key = "none"
         for event in pygame.event.get():
             if event.type == pygame.QUIT:  # pygame.QUIT gets called when we press the 'x' button on the window
                 return  # exit out of the function call to end the display
             if event.type == pygame.KEYDOWN:
-                bot.move(event.key)
+                key = event.key
 
-        bot.robot.timestep(1/FPS)
+        bot.move(key)
 
         display.fill(white)
         bot.draw()
@@ -95,7 +103,7 @@ def simulation():
         wall_bottom.draw()
         # update the display - using clock object to set frame-rate
         pygame.display.update()
-        clock.tick(FPS)
+        # clock.tick(FPS)
         # pass some time in the simulation
         space.step(1 / FPS)  # basis: correlate with FPS. Low val = more accurate simulation, but slower program
 
