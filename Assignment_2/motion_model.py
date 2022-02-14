@@ -1,7 +1,9 @@
+import numpy as np
+import shapely
 from audioop import mul
 from turtle import shape
 from anyio import wait_all_tasks_blocked
-import numpy as np
+from shapely.geometry import LineString, Point
 from sklearn import multiclass
 from sympy import multiplicity
 from vpython import *
@@ -21,14 +23,43 @@ class distance_sensor():
         self._r = radius_robot
     
     def pos_sensor(self, pos_robot):
-        theta = pos_robot[2]+self._offset
+        theta = pos_robot[2] + self._offset
         
         start_pos_sensor = np.array([pos_robot[0], pos_robot[1], theta])
         end_pos_sensor = np.add(start_pos_sensor, np.array([self._r * np.cos(theta), self._r * np.sin(theta), 0]))
         
-        print(f'start_pos_sensor: {start_pos_sensor}\n end_pos_sensor: {end_pos_sensor}')
+        # print(f'start_pos_sensor: {start_pos_sensor}\n end_pos_sensor: {end_pos_sensor}')
 
         return [start_pos_sensor, end_pos_sensor]
+
+    def object_detected(self, pos_robot):
+        wall_north = LineString([(-20, 20), (20, 20)])
+        wall_east = LineString([(20, 20), (20, -20)])
+        wall_south = LineString([(20, -20), (-20, -20)])
+        wall_west = LineString([(-20, -20), (-20, 20)])
+        
+        walls = [wall_north, wall_east, wall_south, wall_west]
+
+        sensor_start, sensor_end = self.pos_sensor(pos_robot)
+        sensor_line = LineString([tuple(sensor_start), tuple(sensor_end)])
+
+        # check if there is intersection with the 4 walls
+        for w in walls:
+            int_pt = sensor_line.intersection(w)
+            if not sensor_line.intersection(w).is_empty:
+                print(f"{w} intersection!")
+                dis = self.distance_detected_object(sensor_line.__geo_interface__.get('coordinates')[0][:-1], (int_pt.x, int_pt.y))
+                print(f"Distance from {w}: {dis}")
+            else:
+                print(f"Distance from {w} out of sensor range")
+
+    def distance_detected_object(self, sensor_start, intersection_point):
+        sensor_start = np.array(sensor_start)
+        intersection_point = np.array(intersection_point)
+        
+        print(sensor_start, intersection_point)
+
+        return np.linalg.norm(sensor_start-intersection_point)
 
     def radians_to_degrees(self, angle):
         return angle*(np.pi/180)
