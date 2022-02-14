@@ -4,9 +4,6 @@ from vpython import *
 
 # ---------- Sensors ---------- #
 
-def radians_to_degrees(angle):
-    return angle*(np.pi/180)
-
 def degrees_to_radians(angle):
     return angle*(np.pi/180)
 
@@ -62,6 +59,19 @@ class distance_sensor():
                 # print(f"Distance from {w} out of sensor range")
                 pass
         self._dist_to_wall = None
+
+    def intersection_coordinates(self, pos_robot):
+        walls = [self._nwall, self._ewall, self._swall, self._wwall]
+
+        sensor_start, sensor_end = self.pos_sensor(pos_robot)
+        sensor_line = LineString([tuple(sensor_start), tuple(sensor_end)])
+
+        # check if there is intersection with the 4 walls
+        for w in walls:
+            int_pt = sensor_line.intersection(w) # point of intersection with the wall
+            if not sensor_line.intersection(w).is_empty:
+                return np.array([int_pt.x, int_pt.y])
+        return None
 
     def distance_detected_object(self, sensor_start, intersection_point, verbose=False):
         # finds the distance between sensor starting point and intersection point

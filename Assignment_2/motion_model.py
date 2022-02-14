@@ -14,6 +14,7 @@ class robot():
         self._start = pos
         self._pos = pos # position should be given in the form [x,y,theta] with theta given in radians not degrees
         self._time = current_time
+        self._time_step_size = 1/30 # careful!! Hard coded for now
         self._l = distance_between_wheels
         self._body_r = robot_body_radius
         self._vel_right = 0
@@ -24,6 +25,7 @@ class robot():
         self._num_sens = num_sensors
         self._sens_dist = sensor_measuring_distance
         self._sensors = []
+        self._collision_sensor = distance_sensor(0, self._body_r, np.round((self._vel_right+self._vel_left)/2, decimals=8))
 
         for i in range(num_sensors):
             offset = np.linspace(0, 360, self._num_sens, endpoint=False)[i]
@@ -47,7 +49,10 @@ class robot():
         return self._time
         
     def timestep(self, time_elapsed=1):
-        self.move_mouhknowsbest(time_elapsed)
+        self._prev_time = self._time
+        if self.check_for_immedeate_collision() is not None:
+            pass
+        else: self.move_mouhknowsbest(time_elapsed)
         self.update_sensors()
         # self.move(time_elapsed)
         self._time += time_elapsed
@@ -147,6 +152,8 @@ class robot():
     def update_sensors(self):
         for sensor in self._sensors:
             sensor.update(self._pos)
+        self._collision_sensor.update(self._pos)
+        self._collision_sensor._sens_dist = np.round((self._vel_left+self._vel_left)*self._time_step_size/2, decimals=8)
 
     def get_rays_vpython(self):
         rays = []
@@ -161,13 +168,27 @@ class robot():
             distances.append(sensor._dist_to_wall)
         return distances
 
+    def check_for_immedeate_collision(self):
+        return self._collision_sensor._dist_to_wall
+
+    def collision_movement(self):
+        pos_collision = self._collision_sensor.intersection_coordinates()
+        vel_forward = (self._vel_left+self._vel_right)/2
+        # implement that the robot collides with the outside of its shape and not with its center
+        fraction_to_wall = np.round(np.linalg.norm(pos_collision-np.array(self._pos[0], self._pos[1]))/vel_forward, decimals=8)
+        self.move_alongside_wall() #use the remaining velocity vector
+        # get fraction of velocity vector that we still need to travel until we hit the wall
+        pass
+
+    def move_alongside_wall(self, velocity_vector=None):
+        pass
 
     def move_mouhknowsbest(self, time_elapsed):
         # new attempt at the move function, as the old one has issues
         # https://www.youtube.com/watch?v=aE7RQNhwnPQ
         # define radius of the wheel to be 1:
         vel_forward = np.round((self._vel_right+self._vel_left)/2, decimals=8)
-        deriv_x = 0.5*(vel_forward)*np.cos(self._pos[2])
+        deriv_x = 0.5*(vel_forward)*np.cos(self._pos[2]) # not sure why it is 0.5 anymore, maybe this depends on the distnace between wheels or the radius of the robot or sth. Rewatch the video for that.
         deriv_y = 0.5*(vel_forward)*np.sin(self._pos[2])
         deriv_theta = (1/self._l)*(self._vel_right-self._vel_left)
         self._pos = self._pos + time_elapsed*np.array([deriv_x, deriv_y, deriv_theta])
