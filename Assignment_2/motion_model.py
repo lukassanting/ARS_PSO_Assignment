@@ -22,7 +22,8 @@ class distance_sensor():
     
     def pos_sensor(self, pos_robot):
         theta = pos_robot[2]+self._offset
-        start_pos_sensor = np.array([pos_robot[0]+np.cos(theta)*self._r, pos_robot[1]+np.cos(theta)*self._r, theta])
+        
+        start_pos_sensor = np.array([pos_robot[0], pos_robot[1], theta])
         end_pos_sensor = np.add(start_pos_sensor, np.array([self._r * np.cos(theta), self._r * np.sin(theta), 0]))
         
         print(f'start_pos_sensor: {start_pos_sensor}\n end_pos_sensor: {end_pos_sensor}')
