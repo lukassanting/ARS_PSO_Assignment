@@ -89,24 +89,25 @@ class Wall:
         pygame.draw.line(display, black, self.shape.a, self.shape.b, wall_size)
 
 
-class Sensor:
+class Sensor: # NOTE: Right now I think that the pymunk physics of the location doesn't get updated
+    # Can't find how to update the position of a line segment in Pymunk - might need to do it just with pyGame logic
     def __init__(self, s_alpha, s_radius):
-        self.body = pymunk.Body()
+        # self.body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
         s_x = (sensor_radius * np.cos(s_alpha)) + middle_x
         s_y = (sensor_radius * np.sin(s_alpha)) + middle_y
         self.start = (middle_x, middle_y)
         self.end = (middle_x + s_x, middle_y + s_y)
-        self.shape = pymunk.Segment(self.body, self.start, self.end, 2)
+        # self.shape = pymunk.Segment(self.body, self.start, self.end, 2)
         # self.shape.sensor = True
-        space.add(self.body, self.shape)
-        self.shape.collision_type = 1
+        # space.add(self.body, self.shape)
+        # self.shape.collision_type = 1
 
     def draw(self, start, end):
-        self.body = pymunk.Body()
+        # self.body = pymunk.Body()
         self.start = start
         self.end = end
-        self.shape = pymunk.Segment(self.body, self.start, self.end, 2)
-        space.add(self.body, self.shape)
+        # self.shape = pymunk.Segment(self.body, self.start, self.end, 2)
+        # space.add(self.body, self.shape)
         pygame.draw.line(display, (0, 128, 0), self.start, self.end, 2)
 
 
