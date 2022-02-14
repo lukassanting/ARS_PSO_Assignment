@@ -22,6 +22,8 @@ def update_all_sensors_pos(robot):
         end = rays[index][1]
         anim_sens.append(start, end)
 
+dashboard = wtext()
+
 wall_length = 40
 wall_width = 0.001
 wall_height = 2
@@ -33,6 +35,13 @@ upper_wall = box(pos=vector(0, 20, 0), size=vector(wall_length - wall_width, wal
 lower_wall = box(pos=vector(0, -20, 0), size=vector(wall_length - wall_width, wall_width, wall_height))
 
 bot = robot([0, 0, 0], acceleration=0.5, num_sensors=num_sensors)
+
+def update_distance_dashboard():
+    dashboard.text = ''
+    distances = bot.get_distance_to_walls()
+    print(distances)
+    for i, dist in enumerate(distances):
+        dashboard.text += f'{i}: {dist} <br>'
 
 def simulation(animation_rate):
     i=0
@@ -57,6 +66,9 @@ def simulation(animation_rate):
         # change sensor position (to update points coordinates: remove the current points and add the updated values)
         update_all_sensors_pos(bot)
         
+        # change distance dashboard
+        update_distance_dashboard()
+
         i += 1
 
 
