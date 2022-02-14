@@ -1,7 +1,9 @@
+import numpy as np
+import shapely
 from audioop import mul
 from turtle import shape
 from anyio import wait_all_tasks_blocked
-import numpy as np
+from shapely.geometry import LineString, Point
 from sklearn import multiclass
 from sympy import multiplicity
 from vpython import *
@@ -12,7 +14,7 @@ class distance_sensor():
     def __init__(self, offset, wall_north, wall_east, wall_south, wall_west, radius_robot) -> None:
         # offset is the angle (counter-clockwise) the sensor faces away from the direction of the robot
         # offset should be given in radians
-        # "wall" parameters should be a list of two tuples, indicting the end-points of the wall
+        # "wall" parameters should be a list of two tuples, indicating the end-points of the wall
         self._offset = offset # direction in which the sensor is pointing
         self._nwall = wall_north
         self._ewall = wall_east
@@ -21,12 +23,61 @@ class distance_sensor():
         self._r = radius_robot
     
     def pos_sensor(self, pos_robot):
-        theta = pos_robot[2]+self._offset
-        pos_sensor = np.array([pos_robot[0]+np.cos(theta)*self._r, pos_robot[1]+np.cos(theta)*self._r, theta])
-        return pos_sensor
+        theta = pos_robot[2] + self._offset
+        
+        start_pos_sensor = np.array([pos_robot[0], pos_robot[1], theta])
+        end_pos_sensor = np.add(start_pos_sensor, np.array([self._r * np.cos(theta), self._r * np.sin(theta), 0]))
+        
+        # print(f'start_pos_sensor: {start_pos_sensor}\n end_pos_sensor: {end_pos_sensor}')
+
+        return [start_pos_sensor, end_pos_sensor]
+
+    def object_detected(self, pos_robot):
+        wall_north = LineString([(-20, 20), (20, 20)])
+        wall_east = LineString([(20, 20), (20, -20)])
+        wall_south = LineString([(20, -20), (-20, -20)])
+        wall_west = LineString([(-20, -20), (-20, 20)])
+        
+        walls = [wall_north, wall_east, wall_south, wall_west]
+
+        sensor_start, sensor_end = self.pos_sensor(pos_robot)
+        sensor_line = LineString([tuple(sensor_start), tuple(sensor_end)])
+
+        # check if there is intersection with the 4 walls
+        for w in walls:
+            int_pt = sensor_line.intersection(w)
+            if not sensor_line.intersection(w).is_empty:
+                print(f"{w} intersection!")
+                dis = self.distance_detected_object(sensor_line.__geo_interface__.get('coordinates')[0][:-1], (int_pt.x, int_pt.y))
+                print(f"Distance from {w}: {dis}")
+            else:
+                print(f"Distance from {w} out of sensor range")
+
+    def distance_detected_object(self, sensor_start, intersection_point):
+        sensor_start = np.array(sensor_start)
+        intersection_point = np.array(intersection_point)
+        
+        print(sensor_start, intersection_point)
+
+        return np.linalg.norm(sensor_start-intersection_point)
 
     def radians_to_degrees(self, angle):
         return angle*(np.pi/180)
+
+    def degrees_to_radians(self, angle):
+        return angle*(np.pi/180)
+
+    def get_pos_vpython(self, pos_robot) -> tuple:
+        """
+            returns the position of the sensor
+
+            Returns:
+                tuple: tuple of vectors for start and end points, where z-coordinate is 0 to simulate 2D
+        """
+
+        start, end = self.pos_sensor(pos_robot)
+
+        return vector(start[0], start[1], 0), vector(end[0], end[1], 0)
 
     def dist_to_wall(self, pos_robot):
         # equation of "sensor line", i.e. a line that simulates the infrared beam that the distance sensor sends out
@@ -34,7 +85,7 @@ class distance_sensor():
         # infrared beam as well as out of the "back" of the robot
 
         # determining the slope given a point and an angle: https://math.stackexchange.com/questions/105770/find-the-slope-of-a-line-given-a-point-and-an-angle
-        slope = np.tan(np.arctan(pos_robot[1]/pos_robot[2]) - self.radians_to_degrees(pos_robot[2]))
+        # slope = np.tan(np.arctan(pos_robot[1]/pos_robot[2]) - self.radians_to_degrees(pos_robot[2]))
         
         # calculating points of intersection
         # still to be implemented
@@ -47,6 +98,7 @@ class robot():
     """
     def __init__(self, pos, distance_between_wheels, current_time=0, acceleration=10) -> None:
         assert distance_between_wheels>0, 'Distance between wheels must be positive'
+        self._start = pos
         self._pos = pos # position should be given in the form [x,y,theta] with theta given in radians not degrees
         self._time = current_time
         self._l = distance_between_wheels
@@ -73,16 +125,19 @@ class robot():
         return self._time
         
     def timestep(self, time_elapsed=1):
-        self.move_mouhknowsbest(time_elapsed)
-        #self.move(time_elapsed)
+        # self.move_mouhknowsbest(time_elapsed)
+        self.move(time_elapsed)
         self._time += time_elapsed
 
-    def reset(self):
+    def stop(self):
         self._vel_right = 0
         self._vel_left = 0
         self._rot_rate = 0
         self._rot_radius = 0
 
+    def reset(self):
+        self.stop()
+        self._pos = self._start
 
     @property
     def vel_right(self):
