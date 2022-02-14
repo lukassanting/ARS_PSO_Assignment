@@ -27,7 +27,7 @@ def update_all_sensors_pos(robot):
         anim_sens.append(start, end)
         # Add distances to labels to sensors
         sensor_labels[index].pos = end
-        sensor_labels[index].text = str(dists[index])
+        sensor_labels[index].text = f'{index}: {str(dists[index])}'
 
 dashboard = wtext()
 
