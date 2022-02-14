@@ -96,7 +96,7 @@ class robot():
             print(f'Accelerating left: {self._vel_left}, rotation rate: {self._rot_rate}, rotation radius: {self._rot_radius}')           
 
     def decel_left(self, verbose=False):
-        self._vel_left = np.round(self._vel_left-self._acc, 4)
+        self._vel_left = np.round(self._vel_left-self._acc, 8)
         self.update_rot_rate()
         self.update_rot_radius()
         if verbose:
@@ -154,6 +154,12 @@ class robot():
             rays.append(sensor.get_ray_vpython(self._pos))
         #print(f'rays are the following: {rays}')
         return rays
+
+    def get_distance_to_walls(self):
+        distances = []
+        for sensor in self._sensors:
+            distances.append(sensor.dist_to_wall)
+        return distances
 
 
     def move_mouhknowsbest(self, time_elapsed):

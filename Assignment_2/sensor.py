@@ -24,6 +24,10 @@ class distance_sensor():
         self._sens_dist = sensor_measuring_distance
         self._radius_rob = radius_robot
         self._dist_to_wall = None
+
+    @property
+    def dist_to_wall(self):
+        return self._dist_to_wall
     
     def pos_sensor(self, pos_robot):
         theta = pos_robot[2] + self._offset
@@ -59,13 +63,14 @@ class distance_sensor():
                 pass
         self._dist_to_wall = None
 
-    def distance_detected_object(self, sensor_start, intersection_point):
+    def distance_detected_object(self, sensor_start, intersection_point, verbose=False):
         # finds the distance between sensor starting point and intersection point
         
         sensor_start = np.array(sensor_start)
         intersection_point = np.array(intersection_point)
         
-        print(sensor_start, intersection_point)
+        if verbose:
+            print(sensor_start, intersection_point)
 
         return np.round(np.linalg.norm(sensor_start-intersection_point), 4)
 

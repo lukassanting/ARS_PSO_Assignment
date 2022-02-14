@@ -38,6 +38,7 @@ def simulation(animation_rate):
     i=0
     while (i<3000):
         rate(animation_rate)
+        
         k = keysdown()
         if 'w' in k: bot.accel_left(verbose=True)
         if 's' in k: bot.decel_left(verbose=True)
