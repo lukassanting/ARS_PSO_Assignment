@@ -11,7 +11,7 @@ from vpython import *
 # ---------- Motion Model ---------- #
 
 class distance_sensor():
-    def __init__(self, offset, wall_north, wall_east, wall_south, wall_west, radius_robot) -> None:
+    def __init__(self, offset, wall_north, wall_east, wall_south, wall_west, radius_robot, radius_sensor) -> None:
         # offset is the angle (counter-clockwise) the sensor faces away from the direction of the robot
         # offset should be given in radians
         # "wall" parameters should be a list of two tuples, indicating the end-points of the wall
@@ -20,19 +20,21 @@ class distance_sensor():
         self._ewall = wall_east
         self._swall = wall_south
         self._wwall = wall_west
-        self._r = radius_robot
+        self._radius_sens = radius_sensor
+        self._radius_rob = radius_robot
     
     def pos_sensor(self, pos_robot):
         theta = pos_robot[2] + self._offset
         
         start_pos_sensor = np.array([pos_robot[0], pos_robot[1], theta])
-        end_pos_sensor = np.add(start_pos_sensor, np.array([self._r * np.cos(theta), self._r * np.sin(theta), 0]))
+        end_pos_sensor = np.add(start_pos_sensor, np.array([(self._radius_sens) * np.cos(theta), (self._radius_sens) * np.sin(theta), 0]))
         
         # print(f'start_pos_sensor: {start_pos_sensor}\n end_pos_sensor: {end_pos_sensor}')
 
         return [start_pos_sensor, end_pos_sensor]
 
     def object_detected(self, pos_robot):
+        
         wall_north = LineString([(-20, 20), (20, 20)])
         wall_east = LineString([(20, 20), (20, -20)])
         wall_south = LineString([(20, -20), (-20, -20)])
@@ -47,19 +49,22 @@ class distance_sensor():
         for w in walls:
             int_pt = sensor_line.intersection(w)
             if not sensor_line.intersection(w).is_empty:
-                print(f"{w} intersection!")
+                print(f"Wall with coordinates {w} intersection!")
                 dis = self.distance_detected_object(sensor_line.__geo_interface__.get('coordinates')[0][:-1], (int_pt.x, int_pt.y))
-                print(f"Distance from {w}: {dis}")
+                print(f"Distance from wall with coordinates {w}: {dis}")
             else:
-                print(f"Distance from {w} out of sensor range")
+                # print(f"Distance from {w} out of sensor range")
+                pass
 
     def distance_detected_object(self, sensor_start, intersection_point):
+        # finds the distance between sensor starting point and intersection point
+        
         sensor_start = np.array(sensor_start)
         intersection_point = np.array(intersection_point)
         
         print(sensor_start, intersection_point)
 
-        return np.linalg.norm(sensor_start-intersection_point)
+        return np.round(np.linalg.norm(sensor_start-intersection_point), 4)
 
     def radians_to_degrees(self, angle):
         return angle*(np.pi/180)
@@ -125,8 +130,8 @@ class robot():
         return self._time
         
     def timestep(self, time_elapsed=1):
-        # self.move_mouhknowsbest(time_elapsed)
-        self.move(time_elapsed)
+        self.move_mouhknowsbest(time_elapsed)
+        # self.move(time_elapsed)
         self._time += time_elapsed
 
     def stop(self):

@@ -26,7 +26,7 @@ model_sensors = []
 for alpha in np.linspace(0, 360, 12, endpoint=False):
     alpha = degrees_to_radians(alpha)
     animation_sensors.append(curve(ball.pos, ball.pos + vector(SENSOR_RADIUS * np.cos(alpha), SENSOR_RADIUS * np.sin(alpha), 0)))
-    model_sensors.append(distance_sensor(alpha, wall_north, wall_east, wall_south, wall_west, 10))
+    model_sensors.append(distance_sensor(alpha, wall_north, wall_east, wall_south, wall_west, ball.radius, SENSOR_RADIUS))
 
 def update_all_sensors_pos(bot_pos):
     for anim_sens, model_sens in zip(animation_sensors, model_sensors):
@@ -38,7 +38,7 @@ def update_all_sensors_pos(bot_pos):
         model_sens.object_detected(bot_pos)
 
 wall_length = 40
-wall_width = 4
+wall_width = 0.001
 wall_height = 2
 
 right_wall = box(pos=vector(20, 0, 0), size=vector(wall_width, wall_length + wall_width, wall_height))
@@ -46,9 +46,6 @@ left_wall = box(pos=vector(-20, 0, 0), size=vector(wall_width, wall_length + wal
 
 upper_wall = box(pos=vector(0, 20, 0), size=vector(wall_length - wall_width, wall_width, wall_height))
 lower_wall = box(pos=vector(0, -20, 0), size=vector(wall_length - wall_width, wall_width, wall_height))
-
-sensor_1 = distance_sensor(0, wall_north, wall_east, wall_south, wall_west, 10)
-sensor_2 = distance_sensor(30, wall_north, wall_east, wall_south, wall_west, 10)
 
 bot = robot([0, 0, 0], 1, acceleration=0.5)
 
@@ -74,7 +71,6 @@ def simulation(animation_rate):
         # change sensor position (to update points coordinates: remove the current points and add the updated values)
         update_all_sensors_pos(bot.pos)
         
-
         i += 1
 
 
