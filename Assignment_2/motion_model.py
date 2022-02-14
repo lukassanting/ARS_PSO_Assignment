@@ -58,7 +58,7 @@ class robot():
         self.update_rot_rate()
         self.update_rot_radius()
         if verbose:
-            print('Stoppping the robot. Set velocity of wheels to zero')
+            print('Stopping the robot. Set velocity of wheels to zero')
 
     def reset(self, verbose=False):
         self.stop(verbose=verbose)
@@ -158,7 +158,7 @@ class robot():
     def get_distance_to_walls(self):
         distances = []
         for sensor in self._sensors:
-            distances.append(sensor.dist_to_wall)
+            distances.append(sensor._dist_to_wall)
         return distances
 
 
