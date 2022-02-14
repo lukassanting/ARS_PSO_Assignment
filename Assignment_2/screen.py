@@ -18,9 +18,13 @@ wall_west = [(-20, -20), (-20, 20)]
 
 # create all the sensors
 
+def degrees_to_radians(angle):
+    return angle*(np.pi/180)
+
 animation_sensors = []
 model_sensors = []
 for alpha in np.linspace(0, 360, 12, endpoint=False):
+    alpha = degrees_to_radians(alpha)
     animation_sensors.append(curve(ball.pos, ball.pos + vector(SENSOR_RADIUS * np.cos(alpha), SENSOR_RADIUS * np.sin(alpha), 0)))
     model_sensors.append(distance_sensor(alpha, wall_north, wall_east, wall_south, wall_west, 10))
 

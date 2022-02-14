@@ -64,6 +64,9 @@ class distance_sensor():
     def radians_to_degrees(self, angle):
         return angle*(np.pi/180)
 
+    def degrees_to_radians(self, angle):
+        return angle*(np.pi/180)
+
     def get_pos_vpython(self, pos_robot) -> tuple:
         """
             returns the position of the sensor
