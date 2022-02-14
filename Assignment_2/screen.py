@@ -1,5 +1,4 @@
 import numpy as np
-from os import XATTR_SIZE_MAX
 from matplotlib import animation
 from vpython import *
 from motion_model import robot, distance_sensor
@@ -23,16 +22,23 @@ def degrees_to_radians(angle):
 
 animation_sensors = []
 model_sensors = []
+sensor_labels = []
+
 for alpha in np.linspace(0, 360, 12, endpoint=False):
     alpha = degrees_to_radians(alpha)
     animation_sensors.append(curve(ball.pos, ball.pos + vector(SENSOR_RADIUS * np.cos(alpha), SENSOR_RADIUS * np.sin(alpha), 0)))
     model_sensors.append(distance_sensor(alpha, wall_north, wall_east, wall_south, wall_west, ball.radius, SENSOR_RADIUS))
+    l_pos = ball.pos + vector(SENSOR_RADIUS * np.cos(alpha), SENSOR_RADIUS * np.sin(alpha), 0)
+    sensor_labels.append(label(pos=l_pos, text="LABEL"))
 
 def update_all_sensors_pos(bot_pos):
-    for anim_sens, model_sens in zip(animation_sensors, model_sensors):
+    for anim_sens, model_sens, sens_label in zip(animation_sensors, model_sensors, sensor_labels):
         anim_sens.clear()
         start, end = model_sens.get_pos_vpython(bot_pos)
         anim_sens.append(start, end)
+
+        sens_label.pos = end
+        sens_label.text = "UPDATED"
 
         # object detection
         model_sens.object_detected(bot_pos)
