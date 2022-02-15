@@ -1,3 +1,7 @@
+# Who did what:
+#  -- Original set-up: Thomas Bahne: i6276804
+#  -- Edited and refined by all three of us.
+
 import numpy as np
 from vpython import *
 from sensor import *
@@ -33,33 +37,60 @@ class Robot():
             offset = degrees_to_radians(offset)
             self._sensors.append(DistanceSensor(offset, self._body_r, self._sens_dist))
 
+    # -------------------------------------------------------------
+    # ---------------------- 'GET' FUNCTIONS ----------------------
+    # -------------------------------------------------------------
+
     @property
     def pos(self):
         return self._pos
 
-    def get_pos_vpython(self) -> np.ndarray:
-        """returns the position of the center of the robot as it is used in VPython
+    @property
+    def time(self):
+        return self._time
 
-        Returns:
+    @property
+    def vel_right(self):
+        return self._vel_right
+
+    @property
+    def vel_left(self):
+        return self._vel_left
+
+    @property
+    def rot_rate(self):
+        return self._rot_rate
+
+    @property
+    def rot_radius(self):
+        return self._rot_radius
+
+    def get_pos_vpython(self) -> np.ndarray:
+        """"Returns:
             np.ndarray: 3D-coordinates of center of robot, where z-coordinate is 0 to simulate 2D
         """           
         return vector(self._pos[0], self._pos[1], 0)
 
-    @property
-    def time(self):
-        return self._time
-        
-    def timestep(self, time_elapsed=1):
-        #self._prev_time = self._time
-        #if self.check_for_immediate_collision() is not None:
-            #pass
-        #else:
-        self.move_mouhknowsbest(time_elapsed)
-        self.update_sensors()
-        # self.move(time_elapsed)
-        self._time += time_elapsed
+    def get_rays_vpython(self):
+        rays = []
+        for sensor in self._sensors:
+            rays.append(sensor.get_ray_vpython(self._pos))
+        #print(f'rays are the following: {rays}')
+        return rays
+
+    def get_distance_to_walls(self):
+        distances = []
+        for sensor in self._sensors:
+            distances.append(sensor._dist_to_wall)
+        return distances
+
+    # ------------------------------------------------------
+    # --------- MANIPULATING & UPDATING VELOCITY -----------
+    # ------------------------------------------------------
 
     def stop(self, verbose=False):
+        """ Function that gets called on pressing a key to stop the robot movement
+        """
         self._vel_right = 0
         self._vel_left = 0
         self.update_rot_rate()
@@ -68,14 +99,12 @@ class Robot():
             print('Stopping the robot. Set velocity of wheels to zero')
 
     def reset(self, verbose=False):
+        """ Function that gets called on pressing a key to reset the robot position
+        """
         self.stop(verbose=verbose)
         self._pos = self._start
         if verbose:
             print(f'Position of robot has been reset to the initial starting position of {self._start}')
-
-    @property
-    def vel_right(self):
-        return self._vel_right  
 
     def accel_right(self, verbose=False):
         self._vel_right = np.round(self._vel_right+self._acc, decimals=8)
@@ -90,10 +119,6 @@ class Robot():
         self.update_rot_radius()
         if verbose:
             print(f'Decelerating right: {self._vel_right}, rotation rate: {self._rot_rate}, rotation radius: {self._rot_radius}')
-
-    @property
-    def vel_left(self):
-        return self._vel_left
 
     def accel_left(self, verbose=False):
         self._vel_left = np.round(self._vel_left+self._acc, decimals=8)
@@ -127,16 +152,8 @@ class Robot():
             print(f'Decelerating left: {self._vel_left}, rotation rate: {self._rot_rate}, rotation radius: {self._rot_radius}')
             print(f'Decelerating right: {self._vel_right}, rotation rate: {self._rot_rate}, rotation radius: {self._rot_radius}')
 
-    @property
-    def rot_rate(self):
-        return self._rot_rate
-
     def update_rot_rate(self):
         self._rot_rate = np.round(((self._vel_right - self._vel_left)/self._l), decimals=8)
-
-    @property
-    def rot_radius(self):
-        return self._rot_radius
 
     def update_rot_radius(self, verbose=False):
         if self._vel_right == self._vel_left:
@@ -151,27 +168,46 @@ class Robot():
         if verbose:
             print(f'Updated R: {self.rot_radius}')
 
+    # ------------------------------------------------------
+    # ------------- CALCULATING NEW POSITION ---------------
+    # ------------------------------------------------------
+
+    def timestep(self, time_elapsed=1):
+        """ Main method that gets called for updating calculating and updating position of robot
+        """
+        # Following commented code is for 'advanced' collision detection:
+        # self._prev_time = self._time
+        # if self.check_for_immediate_collision() is not None:
+        # pass
+        # else:
+        self.move_mouhknowsbest(time_elapsed)
+        self.update_sensors()
+        # self.move(time_elapsed)
+        self._time += time_elapsed
+
+    def move_mouhknowsbest(self, time_elapsed):
+        # new attempt at the move function, as the old one has issues
+        # https://www.youtube.com/watch?v=aE7RQNhwnPQ
+        # define radius of the wheel to be 1:
+        vel_forward = np.round((self._vel_right+self._vel_left)/2, decimals=8)
+        deriv_x = 0.5*(vel_forward)*np.cos(self._pos[2]) # not sure why it is 0.5 anymore, maybe this depends on the distance between wheels or the radius of the robot or sth. Rewatch the video for that.
+        deriv_y = 0.5*(vel_forward)*np.sin(self._pos[2])
+        deriv_theta = (1/self._l)*(self._vel_right-self._vel_left)
+        # test collision movement
+        temp_pos = self._pos + time_elapsed*np.array([deriv_x, deriv_y, deriv_theta])
+        self._pos = np.append(np.clip(temp_pos[:-1], a_min=-1*self._wall_distance+self._body_r, a_max=self._wall_distance-self._body_r), temp_pos[2])  # careful, boundaries are hard coded for now!!!
+        # end test collision movement
+        # self._pos = self._pos + time_elapsed*np.array([deriv_x, deriv_y, deriv_theta])
+
     def update_sensors(self):
         for sensor in self._sensors:
             sensor.update(self._pos)
         self._collision_sensor.update(self._pos)
         self._collision_sensor._sens_dist = np.round(0.5*(self._vel_left+self._vel_right)*self._time_step_size, decimals=8)
 
-    def get_rays_vpython(self):
-        rays = []
-        for sensor in self._sensors:
-            rays.append(sensor.get_ray_vpython(self._pos))
-        #print(f'rays are the following: {rays}')
-        return rays
-
-    # def get_collision_sensor(self):
-    #     return self._collision_sensor
-
-    def get_distance_to_walls(self):
-        distances = []
-        for sensor in self._sensors:
-            distances.append(sensor._dist_to_wall)
-        return distances
+    # ----------------------------------------------------------
+    # ------------- ADVANCED COLLISION DETECTION ---------------
+    # ----------------------------------------------------------
 
     '''
     def check_for_immediate_collision(self):
@@ -201,22 +237,11 @@ class Robot():
         np.clip(intermediate_pos[:-1], a_min=-1*boundary, a_max=boundary)
     '''
 
-    def move_mouhknowsbest(self, time_elapsed):
-        # new attempt at the move function, as the old one has issues
-        # https://www.youtube.com/watch?v=aE7RQNhwnPQ
-        # define radius of the wheel to be 1:
-        vel_forward = np.round((self._vel_right+self._vel_left)/2, decimals=8)
-        deriv_x = 0.5*(vel_forward)*np.cos(self._pos[2]) # not sure why it is 0.5 anymore, maybe this depends on the distance between wheels or the radius of the robot or sth. Rewatch the video for that.
-        deriv_y = 0.5*(vel_forward)*np.sin(self._pos[2])
-        deriv_theta = (1/self._l)*(self._vel_right-self._vel_left)
-        # test collision movement
-        temp_pos = self._pos + time_elapsed*np.array([deriv_x, deriv_y, deriv_theta])
-        self._pos = np.append(np.clip(temp_pos[:-1], a_min=-1*self._wall_distance+self._body_r, a_max=self._wall_distance-self._body_r), temp_pos[2])  # careful, boundaries are hard coded for now!!!
-        # end test collision movement
-        # self._pos = self._pos + time_elapsed*np.array([deriv_x, deriv_y, deriv_theta])
 
-
+    # ----------------------------------------------
     # old move method that was not working properly
+    # ----------------------------------------------
+
 
     # def move(self, time_elapsed, verbose=False) -> None:
     #     """Method that performs moving the robot one time-step forward.
