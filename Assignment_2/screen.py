@@ -51,7 +51,7 @@ bot = Robot([0, 0, 0], acceleration=0.5, num_sensors=num_sensors, wall_distance=
 def update_distance_dashboard():
     dashboard.text = ''
     distances = bot.get_distance_to_walls()
-    print(distances)
+    #print(distances)
     for i, dist in enumerate(distances):
         dashboard.text += f'{i}: {dist} <br>'
     dashboard.text += f'Speed right wheel: {bot.vel_right} <br>'
@@ -70,12 +70,12 @@ def simulation(animation_rate):
         rate(animation_rate)
         
         k = keysdown()
-        if 'w' in k: bot.accel_left(verbose=True)
-        if 's' in k: bot.decel_left(verbose=True)
-        if 'o' in k: bot.accel_right(verbose=True)
-        if 'l' in k: bot.decel_right(verbose=True)
-        if 'y' in k: bot.accel_both(verbose=True)
-        if 'h' in k: bot.decel_both(verbose=True)
+        if 'w' in k: bot.accel_left()
+        if 's' in k: bot.decel_left()
+        if 'o' in k: bot.accel_right()
+        if 'l' in k: bot.decel_right()
+        if 'y' in k: bot.accel_both()
+        if 'h' in k: bot.decel_both()
         if 'r' in k: bot.reset()
         if 'x' in k: bot.stop()
         if 'q' in k: return
