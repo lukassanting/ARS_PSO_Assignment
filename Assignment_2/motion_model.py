@@ -1,15 +1,15 @@
 import numpy as np
 from vpython import *
-from sensor import distance_sensor, degrees_to_radians
+from sensor import *
 
 # ---------- Motion Model ---------- #
 
 
-class robot():
+class Robot():
     """Class for the two-wheeled robot
     Assumes the radius of the tires to be equal to 1
     """
-    def __init__(self, pos, distance_between_wheels=1, robot_body_radius=1, current_time=0, acceleration=1, num_sensors=8, sensor_measuring_distance=10) -> None:
+    def __init__(self, pos, distance_between_wheels=1, robot_body_radius=1, current_time=0, acceleration=1, num_sensors=8, sensor_measuring_distance=10, wall_distance=20) -> None:
         assert distance_between_wheels>0, 'Distance between wheels must be positive'
         self._start = pos
         self._pos = pos # position should be given in the form [x,y,theta] with theta given in radians not degrees
@@ -25,12 +25,13 @@ class robot():
         self._num_sens = num_sensors
         self._sens_dist = sensor_measuring_distance
         self._sensors = []
-        self._collision_sensor = distance_sensor(0, self._body_r, np.round((self._vel_right+self._vel_left)/2, decimals=8))
+        self._collision_sensor = DistanceSensor(0, self._body_r, np.round((self._vel_right+self._vel_left)/2, decimals=8))
+        self._wall_distance = wall_distance
 
         for i in range(num_sensors):
             offset = np.linspace(0, 360, self._num_sens, endpoint=False)[i]
             offset = degrees_to_radians(offset)
-            self._sensors.append(distance_sensor(offset, self._body_r, self._sens_dist))
+            self._sensors.append(DistanceSensor(offset, self._body_r, self._sens_dist))
 
     @property
     def pos(self):
@@ -70,7 +71,7 @@ class robot():
         self.stop(verbose=verbose)
         self._pos = self._start
         if verbose:
-            print(f'Position of robot has been reset to the initial starting poisiton of {self._start}')
+            print(f'Position of robot has been reset to the initial starting position of {self._start}')
 
     @property
     def vel_right(self):
@@ -92,7 +93,7 @@ class robot():
 
     @property
     def vel_left(self):
-        return self._vel_right
+        return self._vel_left
 
     def accel_left(self, verbose=False):
         self._vel_left = np.round(self._vel_left+self._acc, decimals=8)
@@ -210,7 +211,7 @@ class robot():
         deriv_theta = (1/self._l)*(self._vel_right-self._vel_left)
         # test collision movement
         temp_pos = self._pos + time_elapsed*np.array([deriv_x, deriv_y, deriv_theta])
-        self._pos = np.append(np.clip(temp_pos[:-1], a_min=-1*20+self._body_r, a_max=20-self._body_r), temp_pos[2])  # careful, boundaries are hard coded for now!!!
+        self._pos = np.append(np.clip(temp_pos[:-1], a_min=-1*self._wall_distance+self._body_r, a_max=self._wall_distance-self._body_r), temp_pos[2])  # careful, boundaries are hard coded for now!!!
         # end test collision movement
         # self._pos = self._pos + time_elapsed*np.array([deriv_x, deriv_y, deriv_theta])
 

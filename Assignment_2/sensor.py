@@ -8,12 +8,12 @@ def degrees_to_radians(angle):
     return angle*(np.pi/180)
 
 
-class distance_sensor():
+class DistanceSensor():
     def __init__(self, offset, radius_robot, sensor_measuring_distance, wall_north=[(-20, 20), (20, 20)], wall_east=[(20, 20), (20, -20)], wall_south=[(20, -20), (-20, -20)], wall_west=[(-20, -20), (-20, 20)]) -> None:
         # offset is the angle (counter-clockwise) the sensor faces away from the direction of the robot
         # offset should be given in radians
         # "wall" parameters should be a list of two tuples, indicating the end-points of the wall
-        self._offset = offset # direction in which the sensor is pointing
+        self._offset = offset   # direction in which the sensor is pointing
         self._nwall = LineString(wall_north)
         self._ewall = LineString(wall_east)
         self._swall = LineString(wall_south)
