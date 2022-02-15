@@ -163,6 +163,9 @@ class robot():
         #print(f'rays are the following: {rays}')
         return rays
 
+    # def get_collision_sensor(self):
+    #     return self._collision_sensor
+
     def get_distance_to_walls(self):
         distances = []
         for sensor in self._sensors:

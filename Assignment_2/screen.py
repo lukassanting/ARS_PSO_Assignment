@@ -1,5 +1,5 @@
 import numpy as np
-from matplotlib import animation
+# from matplotlib import animation
 from vpython import *
 from motion_model import robot
 
@@ -12,6 +12,7 @@ num_sensors = 8
 
 animation_sensors = []
 sensor_labels = []
+# coll_sensor = curve(pos=[ball.pos, ball.pos],color=color.red)
 for i in range(num_sensors):
     # just instantiation here, sensors & sensor labels get values in the update function below
     animation_sensors.append(curve(ball.pos, ball.pos))         # vPython sensors (for the animation)
@@ -25,6 +26,9 @@ def update_all_sensors_pos(robot):
         start = rays[index][0]
         end = rays[index][1]
         anim_sens.append(start, end)
+        if index==0:
+            anim_sens.append(pos=[start, end], color=color.red)
+
         # Add distances to labels to sensors
         sensor_labels[index].pos = end
         sensor_labels[index].text = f'{index}: {str(dists[index])}'
