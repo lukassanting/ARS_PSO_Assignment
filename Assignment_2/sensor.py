@@ -47,9 +47,14 @@ class distance_sensor():
 
         # check if there is intersection with the 4 walls
         for w in walls:
-            int_pt = sensor_line.intersection(w) # point of intersection with the wall
+            int_pt = sensor_line.intersection(w)  # point of intersection with the wall
+            int_pt = list(int_pt.coords)
             if not sensor_line.intersection(w).is_empty:
-                dis = self.distance_detected_object(sensor_line.__geo_interface__.get('coordinates')[0][:-1], (int_pt.x, int_pt.y))
+                # if LineString get first point
+                if isinstance(int_pt, LineString):
+                    int_pt = int_pt.xy[0]
+
+                dis = self.distance_detected_object(sensor_line.__geo_interface__.get('coordinates')[0][:-1], (int_pt[0][0], int_pt[0][1]))
                 self._dist_to_wall = dis
                 if verbose:
                     print(f"Wall with coordinates {w} intersection!")

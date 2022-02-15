@@ -49,10 +49,11 @@ class robot():
         return self._time
         
     def timestep(self, time_elapsed=1):
-        self._prev_time = self._time
-        if self.check_for_immedeate_collision() is not None:
-            pass
-        else: self.move_mouhknowsbest(time_elapsed)
+        #self._prev_time = self._time
+        #if self.check_for_immediate_collision() is not None:
+            #pass
+        #else:
+        self.move_mouhknowsbest(time_elapsed)
         self.update_sensors()
         # self.move(time_elapsed)
         self._time += time_elapsed
@@ -168,7 +169,8 @@ class robot():
             distances.append(sensor._dist_to_wall)
         return distances
 
-    def check_for_immedeate_collision(self):
+    '''
+    def check_for_immediate_collision(self):
         return self._collision_sensor._dist_to_wall
 
     def collision_movement(self):
@@ -176,22 +178,37 @@ class robot():
         vel_forward = (self._vel_left+self._vel_right)/2
         # implement that the robot collides with the outside of its shape and not with its center
         fraction_to_wall = np.round(np.linalg.norm(pos_collision-np.array(self._pos[0], self._pos[1]))/vel_forward, decimals=8)
-        self.move_alongside_wall() #use the remaining velocity vector
+        self.move_alongside_wall(frac_vel_remaining=1-fraction_to_wall)  # use the remaining velocity vector
         # get fraction of velocity vector that we still need to travel until we hit the wall
         pass
 
-    def move_alongside_wall(self, velocity_vector=None):
+    def move_alongside_wall(self, frac_vel_remaining):
+        x_component = 0.5*(self._vel_right+self._vel_right) * np.cos(self._pos[2])
+        y_component = 0.5*(self._vel_right+self._vel_right) * np.sin(self._pos[2])
         pass
+
+
+    def test(self, boundary=20):
+        vel_forward = np.round((self._vel_right+self._vel_left)/2, decimals=8)
+        deriv_x = 0.5*(vel_forward)*np.cos(self._pos[2])  # not sure why it is 0.5 anymore, maybe this depends on the distance between wheels or the radius of the robot or sth. Rewatch the video for that.
+        deriv_y = 0.5*(vel_forward)*np.sin(self._pos[2])
+        intermediate_pos = self._pos + time_elapsed*np.array([deriv_x, deriv_y, 0])
+        np.clip(intermediate_pos[:-1], a_min=-1*boundary, a_max=boundary)
+    '''
 
     def move_mouhknowsbest(self, time_elapsed):
         # new attempt at the move function, as the old one has issues
         # https://www.youtube.com/watch?v=aE7RQNhwnPQ
         # define radius of the wheel to be 1:
         vel_forward = np.round((self._vel_right+self._vel_left)/2, decimals=8)
-        deriv_x = 0.5*(vel_forward)*np.cos(self._pos[2]) # not sure why it is 0.5 anymore, maybe this depends on the distnace between wheels or the radius of the robot or sth. Rewatch the video for that.
+        deriv_x = 0.5*(vel_forward)*np.cos(self._pos[2]) # not sure why it is 0.5 anymore, maybe this depends on the distance between wheels or the radius of the robot or sth. Rewatch the video for that.
         deriv_y = 0.5*(vel_forward)*np.sin(self._pos[2])
         deriv_theta = (1/self._l)*(self._vel_right-self._vel_left)
-        self._pos = self._pos + time_elapsed*np.array([deriv_x, deriv_y, deriv_theta])
+        # test collision movement
+        temp_pos = self._pos + time_elapsed*np.array([deriv_x, deriv_y, deriv_theta])
+        self._pos = np.append(np.clip(temp_pos[:-1], a_min=-1*20+self._body_r, a_max=20-self._body_r), temp_pos[2])  # careful, boundaries are hard coded for now!!!
+        # end test collision movement
+        # self._pos = self._pos + time_elapsed*np.array([deriv_x, deriv_y, deriv_theta])
 
 
     # old move method that was not working properly

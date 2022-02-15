@@ -29,6 +29,7 @@ def update_all_sensors_pos(robot):
         sensor_labels[index].pos = end
         sensor_labels[index].text = f'{index}: {str(dists[index])}'
 
+# add velocities of wheels to dashboard
 dashboard = wtext()
 
 wall_length = 40
@@ -49,6 +50,8 @@ def update_distance_dashboard():
     print(distances)
     for i, dist in enumerate(distances):
         dashboard.text += f'{i}: {dist} <br>'
+    dashboard.text += f'Speed right wheel: {bot.vel_right} <br>'
+    dashboard.text += f'Speed left wheel: {bot.vel_left}'
 
 def simulation(animation_rate):
     i=0
