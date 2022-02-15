@@ -153,7 +153,7 @@ class robot():
         for sensor in self._sensors:
             sensor.update(self._pos)
         self._collision_sensor.update(self._pos)
-        self._collision_sensor._sens_dist = np.round((self._vel_left+self._vel_left)*self._time_step_size/2, decimals=8)
+        self._collision_sensor._sens_dist = np.round(0.5*(self._vel_left+self._vel_right)*self._time_step_size, decimals=8)
 
     def get_rays_vpython(self):
         rays = []
