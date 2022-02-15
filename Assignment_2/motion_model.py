@@ -179,6 +179,7 @@ class robot():
     def collision_movement(self):
         pos_collision = self._collision_sensor.intersection_coordinates()
         vel_forward = (self._vel_left+self._vel_right)/2
+
         # implement that the robot collides with the outside of its shape and not with its center
         fraction_to_wall = np.round(np.linalg.norm(pos_collision-np.array(self._pos[0], self._pos[1]))/vel_forward, decimals=8)
         self.move_alongside_wall(frac_vel_remaining=1-fraction_to_wall)  # use the remaining velocity vector
