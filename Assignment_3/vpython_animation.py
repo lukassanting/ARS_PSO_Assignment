@@ -66,8 +66,19 @@ def update_distance_dashboard():
     dashboard.text += "Stop bot in place: 'x' <br>"
     dashboard.text += "Reset bot position: 'r'"
 
+edge_north = [(-20, 20), (20, 20)]
+edge_south = [(20, -20), (-20, -20)]
+edge_west = [(-20, -20), (-20, 20)]
+edge_east = [(20, 20), (20, -20)]
+edges = [edge_north, edge_south, edge_west, edge_east]
+
 # initialize instance of Robot class
-bot = Robot([0, 0, 0], acceleration=0.5, num_sensors=num_sensors, wall_distance=20, collision_check=True)
+bot = Robot([0, 0, 0],
+            acceleration=0.5,
+            num_sensors=num_sensors,
+            obstacle_edges=edges,
+            wall_distance=20,
+            collision_check=True)
 
 # Function that defines a simulation & updates the scene
 def simulation(animation_rate):

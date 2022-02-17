@@ -10,7 +10,17 @@ class Robot():
     """Class for the two-wheeled robot
     Assumes the radius of the tires to be equal to 1
     """
-    def __init__(self, pos, distance_between_wheels=1, robot_body_radius=1, current_time=0, acceleration=1, num_sensors=8, sensor_measuring_distance=10, wall_distance=20, collision_check=True) -> None:
+    def __init__(self,
+                 pos,
+                 distance_between_wheels=1,
+                 robot_body_radius=1,
+                 current_time=0,
+                 acceleration=1,
+                 num_sensors=8,
+                 sensor_measuring_distance=10,
+                 obstacle_edges=None,
+                 wall_distance=20,
+                 collision_check=True) -> None:
         assert distance_between_wheels>0, 'Distance between wheels must be positive'
         self._start = pos
         self._pos = pos # position should be given in the form [x,y,theta] with theta given in radians not degrees
@@ -26,7 +36,8 @@ class Robot():
         self._num_sens = num_sensors
         self._sens_dist = sensor_measuring_distance
         self._sensors = []
-        self._collision_sensor = DistanceSensor(0, self._body_r, np.round((self._vel_right+self._vel_left)/2, decimals=8))
+        self._obstacle_edges = obstacle_edges
+        self._collision_sensor = DistanceSensor(0, self._body_r, np.round((self._vel_right+self._vel_left)/2, decimals=8), self._obstacle_edges)
         self._wall_distance = wall_distance
         self._collision_check = collision_check
         self._theta = self._pos[2]
@@ -34,7 +45,7 @@ class Robot():
         for i in range(num_sensors):
             offset = np.linspace(0, 360, self._num_sens, endpoint=False)[i]
             offset = degrees_to_radians(offset)
-            self._sensors.append(DistanceSensor(offset, self._body_r, self._sens_dist))
+            self._sensors.append(DistanceSensor(offset, self._body_r, self._sens_dist, self._obstacle_edges))
 
     # -------------------------------------------------------------
     # ---------------------- 'GET' FUNCTIONS ----------------------
@@ -90,7 +101,7 @@ class Robot():
         vel_forward = np.round((self._vel_right+self._vel_left)/2, decimals=8)
         move_x = dt*(np.round(vel_forward*np.cos(self._theta), decimals=8))
         move_y = dt*(np.round(vel_forward*np.sin(self._theta), decimals=8))
-        self._theta += dt*(1/self._l)*(self._vel_right-self._vel_left)
+        self._theta += dt*0.5*(1/self._l)*(self._vel_right-self._vel_left)
         return [move_x, move_y]
 
     # ------------------------------------------------------

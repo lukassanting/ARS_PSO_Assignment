@@ -8,23 +8,30 @@ from vpython import *
 def degrees_to_radians(angle):
     return angle*(np.pi/180)
 
+# wall_north=[(-20, 20), (20, 20)], wall_east=[(20, 20), (20, -20)], wall_south=[(20, -20), (-20, -20)], wall_west=[(-20, -20), (-20, 20)]
+
 class DistanceSensor():
-    def __init__(self, offset, radius_robot, sensor_measuring_distance, wall_north=[(-20, 20), (20, 20)], wall_east=[(20, 20), (20, -20)], wall_south=[(20, -20), (-20, -20)], wall_west=[(-20, -20), (-20, 20)]) -> None:
+    def __init__(self, offset, radius_robot, sensor_measuring_distance, obstacle_edges) -> None:
         # offset is the angle (counter-clockwise) the sensor faces away from the direction of the robot
         # offset should be given in radians
         # "wall" parameters should be a list of two tuples, indicating the end-points of the wall
         self._offset = offset   # direction in which the sensor is pointing
-        self._nwall = LineString(wall_north)
-        self._ewall = LineString(wall_east)
-        self._swall = LineString(wall_south)
-        self._wwall = LineString(wall_west)
         self._sens_dist = sensor_measuring_distance
         self._radius_rob = radius_robot
         self._dist_to_wall = None
+        if obstacle_edges:
+            self._obstacle_edges = self.get_obstacle_edges(obstacle_edges)
 
     # -------------------------------------------------------------
     # ---------------------- 'GET' FUNCTIONS ----------------------
     # -------------------------------------------------------------
+
+    def get_obstacle_edges(self, coords):
+        edges = []
+        for coord in coords:
+            # coords are expected to be start and endpoints of obstacle edges (walls) in form: [(10, 5), (990, 5)]
+            edges.append(LineString(coord))
+        return edges
 
     @property
     def get_dist_to_wall(self):
@@ -51,7 +58,7 @@ class DistanceSensor():
 
     def object_detected(self, pos_robot, verbose=False):
         
-        walls = [self._nwall, self._ewall, self._swall, self._wwall]
+        walls = self._obstacle_edges
 
         sensor_start, sensor_end = self.get_sensor_position(pos_robot)
         sensor_line = LineString([tuple(sensor_start), tuple(sensor_end)])
@@ -77,7 +84,7 @@ class DistanceSensor():
         self._dist_to_wall = None
 
     def intersection_coordinates(self, pos_robot):
-        walls = [self._nwall, self._ewall, self._swall, self._wwall]
+        walls = self._obstacle_edges
 
         sensor_start, sensor_end = self.get_sensor_position(pos_robot)
         sensor_line = LineString([tuple(sensor_start), tuple(sensor_end)])
