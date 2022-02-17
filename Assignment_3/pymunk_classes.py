@@ -43,8 +43,18 @@ class Pymunk_Bot:
 class Pymunk_Obstacle:
     """ Class for ...
     """
-    def __init__(self):
-        return
+    def __init__(self, pygame_display, pymunk_space, radius, color, p1, p2):
+        self.pygame_display = pygame_display
+        self.pymunk_space = pymunk_space
+        self.radius = radius
+        self.color = color
+        self.p1 = p1
+        self.p2 = p2
+
+        self.body = pymunk.Body(body_type=pymunk.Body.STATIC)
+        self.shape = pymunk.Segment(self.body, self.p1, self.p2, self.radius)
+        self.shape.elasticity = 1
+        pymunk_space.add(self.body, self.shape)
 
     def draw(self):
-        return
+        pygame.draw.line(self.pygame_display, self.color, self.p1, self.p2, self.radius)

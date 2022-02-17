@@ -28,8 +28,9 @@ black = (0, 0, 0)
 display.fill(white)
 
 def simulation(FPS=30):
-    motion_model_robot = Robot([0, 0, 0], robot_body_radius=bot_radius, acceleration=10, num_sensors=8, wall_distance=280, collision_check=False)
+    motion_model_robot = Robot([0, 0, 0], robot_body_radius=bot_radius, acceleration=5.5, num_sensors=8, wall_distance=280, collision_check=False)
     bot = Pymunk_Bot(robot=motion_model_robot, pygame_display=display, pymunk_space=space, radius=bot_radius, color=black)
+    wall_right=Pymunk_Obstacle(pygame_display=display, pymunk_space=space, radius=bot_radius, color=black, p1=[580, 10], p2=[580, 580])
 
     while(True):
         key = "none"
@@ -42,6 +43,7 @@ def simulation(FPS=30):
         bot.move(key)
         display.fill(white)
         bot.draw()
+        wall_right.draw()
 
         # update the display - using clock object to set frame-rate
         pygame.display.update()
