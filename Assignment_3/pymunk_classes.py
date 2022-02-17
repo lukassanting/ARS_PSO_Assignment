@@ -1,5 +1,6 @@
 import pymunk
 import pygame
+from motion_model import *
 
 class Pymunk_Bot:
     """ Class for a movable robot (circle) in PyMunk using the motion_model Robot class
@@ -19,8 +20,18 @@ class Pymunk_Bot:
         self.pymunk_space.add(self.body, self.shape)
         self.shape.collision_type = 1
 
-    def move(self, key):
-        return
+    def move(self, key=None):
+        if key:
+            if key == pygame.K_w: self.bot.accel_left()
+            if key == pygame.K_s: self.bot.decel_left()
+            if key == pygame.K_o: self.bot.accel_right()
+            if key == pygame.K_l: self.bot.decel_right()
+            if key == pygame.K_y: self.bot.accel_both()
+            if key == pygame.K_h: self.bot.decel_both()
+            if key == pygame.K_x: self.bot.stop()
+            if key == pygame.K_r: self.bot.reset()
+        bot_velocity = self.bot.get_velocity()
+        self.body.velocity = bot_velocity[0], bot_velocity[1]
 
     def draw(self):
         pygame.draw.circle(self.pygame_display, self.color, self.body.position, self.radius)
