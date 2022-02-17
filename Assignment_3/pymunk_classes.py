@@ -20,7 +20,7 @@ class Pymunk_Bot:
         self.pymunk_space.add(self.body, self.shape)
         self.shape.collision_type = 1
 
-    def move(self, key=None):
+    def move(self, key=None, FPS=30):
         if key:
             if key == pygame.K_w: self.bot.accel_left()
             if key == pygame.K_s: self.bot.decel_left()
@@ -30,7 +30,7 @@ class Pymunk_Bot:
             if key == pygame.K_h: self.bot.decel_both()
             if key == pygame.K_x: self.bot.stop()
             if key == pygame.K_r: self.bot.reset()
-        bot_velocity = self.bot.get_velocity()
+        bot_velocity = self.bot.get_xy_velocity(1/FPS)
         self.body.velocity = bot_velocity[0], bot_velocity[1]
 
     def draw(self):

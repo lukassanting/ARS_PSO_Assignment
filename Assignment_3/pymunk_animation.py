@@ -28,7 +28,7 @@ black = (0, 0, 0)
 display.fill(white)
 
 def simulation(FPS=30):
-    motion_model_robot = Robot([0, 0, 0], robot_body_radius=bot_radius, acceleration=5, num_sensors=8, wall_distance=280, collision_check=False)
+    motion_model_robot = Robot([0, 0, 1], distance_between_wheels=bot_radius*2, robot_body_radius=bot_radius, acceleration=5, num_sensors=8, wall_distance=280, collision_check=False)
     bot = Pymunk_Bot(robot=motion_model_robot, pygame_display=display, pymunk_space=space, radius=bot_radius, color=black)
     wall_right=Pymunk_Obstacle(pygame_display=display, pymunk_space=space, radius=10, color=black, p1=[580, 10], p2=[580, 580])
     wall_left=Pymunk_Obstacle(pygame_display=display, pymunk_space=space, radius=10, color=black, p1=[10, 10], p2=[10, 580])

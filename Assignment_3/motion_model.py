@@ -29,6 +29,7 @@ class Robot():
         self._collision_sensor = DistanceSensor(0, self._body_r, np.round((self._vel_right+self._vel_left)/2, decimals=8))
         self._wall_distance = wall_distance
         self._collision_check = collision_check
+        self._theta = self._pos[2]
 
         for i in range(num_sensors):
             offset = np.linspace(0, 360, self._num_sens, endpoint=False)[i]
@@ -85,12 +86,11 @@ class Robot():
             distances.append(sensor._dist_to_wall)
         return distances
 
-    def get_velocity(self):
-        # Doesn't seem to work, not sure why yet - move_y is always 0
+    def get_xy_velocity(self, dt=1/30):
         vel_forward = np.round((self._vel_right+self._vel_left)/2, decimals=8)
-        deriv_theta = (1/self._l)*(self._vel_right-self._vel_left)
-        move_x = np.round(vel_forward*np.cos(self._pos[2]), decimals=8)
-        move_y = np.round(vel_forward*np.sin(self._pos[2]), decimals=8)
+        move_x = dt*(np.round(vel_forward*np.cos(self._theta), decimals=8))
+        move_y = dt*(np.round(vel_forward*np.sin(self._theta), decimals=8))
+        self._theta += dt*(1/self._l)*(self._vel_right-self._vel_left)
         return [move_x, move_y]
 
     # ------------------------------------------------------
