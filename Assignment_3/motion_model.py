@@ -86,6 +86,7 @@ class Robot():
         return distances
 
     def get_velocity(self):
+        # Doesn't seem to work, not sure why yet - move_y is always 0
         vel_forward = np.round((self._vel_right+self._vel_left)/2, decimals=8)
         deriv_theta = (1/self._l)*(self._vel_right-self._vel_left)
         move_x = np.round(vel_forward*np.cos(self._pos[2]), decimals=8)

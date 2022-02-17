@@ -41,7 +41,7 @@ class Pymunk_Bot:
 
 
 class Pymunk_Obstacle:
-    """ Class for ...
+    """ Class for a wall in pymunk, for pygame. Soon to be extended for more than just line segments.
     """
     def __init__(self, pygame_display, pymunk_space, radius, color, p1, p2):
         self.pygame_display = pygame_display
