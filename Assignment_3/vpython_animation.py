@@ -78,7 +78,8 @@ bot = Robot([0, 0, 0],
             num_sensors=num_sensors,
             obstacle_edges=edges,
             wall_distance=20,
-            collision_check=True)
+            collision_check=True,
+            slide_collision_check=False)
 
 # Function that defines a simulation & updates the scene
 def simulation(animation_rate):

@@ -218,7 +218,7 @@ class Robot():
 
         # Case 1: New collision type (doesn't work yet)
         if self._slide_collision_check:
-            intersec_coords = self._forward_sensor.intersection_coordinates(self._pymunk_position)
+            intersec_coords = self._forward_sensor.intersection_coordinates(self._pos)
             if intersec_coords is not None:
                 deriv_x, deriv_y = self.collision_slide(intersec_coords, deriv_x, deriv_y)
                 print(intersec_coords)
