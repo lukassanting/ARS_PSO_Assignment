@@ -20,7 +20,8 @@ class Robot():
                  sensor_measuring_distance=10,
                  obstacle_edges=None,
                  wall_distance=20,
-                 collision_check=True) -> None:
+                 collision_check=True,
+                 pymunk_offset=[0,0,0]) -> None:
         assert distance_between_wheels>0, 'Distance between wheels must be positive'
         self._start = pos
         self._pos = pos # position should be given in the form [x,y,theta] with theta given in radians not degrees
@@ -40,7 +41,8 @@ class Robot():
         self._collision_sensor = DistanceSensor(0, self._body_r, np.round((self._vel_right+self._vel_left)/2, decimals=8), self._obstacle_edges)
         self._wall_distance = wall_distance
         self._collision_check = collision_check
-        self._theta = self._pos[2]
+        self._theta = self._pos[2]                          # used as angle for pymunk
+        self._pymunk_position = self._pos + pymunk_offset   # keeps track of pymunk position
 
         for i in range(num_sensors):
             offset = np.linspace(0, 360, self._num_sens, endpoint=False)[i]
@@ -226,6 +228,12 @@ class Robot():
             sensor.update(self._pos)
         self._collision_sensor.update(self._pos)
         self._collision_sensor._sens_dist = np.round(0.5*(self._vel_left+self._vel_right)*self._time_step_size, decimals=8)
+
+    def pymunk_position_update(self, coords):
+        self._pymunk_position[0] = coords[0]
+        self._pymunk_position[1] = coords[1]
+        self._pymunk_position[2] = self._theta
+        # theta value gets updated in get_xy_velocity
 
     # ----------------------------------------------------------
     # ------------- ADVANCED COLLISION DETECTION ---------------

@@ -40,9 +40,11 @@ def simulation(FPS=30):
                   robot_body_radius=bot_radius,
                   acceleration=30,
                   num_sensors=8,
+                  sensor_measuring_distance=50,
                   obstacle_edges=edges,
-                  wall_distance=280,        # !! doesn't match edge locations: expects square room from old impl !!
-                  collision_check=False)    # !! wall_distance needs to be correct before setting collision to True !!
+                  wall_distance=280,          # !! doesn't match edge locations: expects square room from old impl !!
+                  collision_check=False,      # !! wall_distance needs to be correct before setting collision to True !!
+                  pymunk_offset=[100,400,0])  # x, y position offset, as backend logic is based on 0,0
 
     # Make the pymunk-pygame Bot, taking the motion_model Robot as an argument
     bot = Pymunk_Bot(robot=robot,
@@ -71,6 +73,7 @@ def simulation(FPS=30):
         # Update the pygame display color & draw the elements
         display.fill(white)
         bot.draw()
+        bot.draw_sensors()
         for wall in walls:
             wall.draw()
         pygame.display.update()

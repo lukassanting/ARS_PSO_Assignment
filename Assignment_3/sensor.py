@@ -8,7 +8,6 @@ from vpython import *
 def degrees_to_radians(angle):
     return angle*(np.pi/180)
 
-# wall_north=[(-20, 20), (20, 20)], wall_east=[(20, 20), (20, -20)], wall_south=[(20, -20), (-20, -20)], wall_west=[(-20, -20), (-20, 20)]
 
 class DistanceSensor():
     def __init__(self, offset, radius_robot, sensor_measuring_distance, obstacle_edges) -> None:
@@ -52,6 +51,7 @@ class DistanceSensor():
         # print(f'start_pos_sensor: {start_pos_sensor}\n end_pos_sensor: {end_pos_sensor}')
 
         return [start_pos_sensor, end_pos_sensor]
+
 
     def update(self, pos_robot, verbose=False):
         self.object_detected(pos_robot, verbose=verbose)

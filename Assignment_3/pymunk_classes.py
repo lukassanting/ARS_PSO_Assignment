@@ -34,9 +34,16 @@ class Pymunk_Bot:
             if key == pygame.K_r: self.bot.reset()
         bot_velocity = self.bot.get_xy_velocity(1/FPS)
         self.body.velocity = bot_velocity[0], bot_velocity[1]
+        self.bot.pymunk_position_update(self.body.position)
 
     def draw(self):
         pygame.draw.circle(self.pygame_display, self.color, self.body.position, self.radius)
+
+    def draw_sensors(self):
+        sensors = self.bot._sensors
+        for sensor in sensors:
+            start, end = sensor.get_sensor_position(self.bot._pymunk_position)
+            pygame.draw.line(self.pygame_display, self.color, (start[0], start[1]), (end[0], end[1]), 5)
 
     # def to_pygame(self, value):
     #     return value + 300
