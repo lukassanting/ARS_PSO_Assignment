@@ -11,9 +11,10 @@ class Pymunk_Bot:
         self.pymunk_space = pymunk_space
         self.radius = radius
         self.color = color
+        self.pymunk_collision = pymunk_collision
 
         self.body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
-        if pymunk_collision:
+        if self.pymunk_collision:
             self.body = pymunk.Body()
         self.body.position = self.bot.get_pos_pygame()[0]+100, self.bot.get_pos_pygame()[1] + 400
         self.shape = pymunk.Circle(self.body, self.radius)
@@ -32,9 +33,16 @@ class Pymunk_Bot:
             if key == pygame.K_h: self.bot.decel_both()
             if key == pygame.K_x: self.bot.stop()
             if key == pygame.K_r: self.bot.reset()
-        bot_velocity = self.bot.get_xy_velocity(1/FPS)
-        self.body.velocity = bot_velocity[0], bot_velocity[1]
-        self.bot.pymunk_position_update(self.body.position)
+        # Case 1: Using pymunk auto collision, not our own collision
+        if self.pymunk_collision:
+            bot_velocity = self.bot.get_xy_velocity(1/FPS)
+            self.body.velocity = bot_velocity[0], bot_velocity[1]
+            self.bot.pymunk_position_update(self.body.position)
+        # Case 2: Using our own collision, not pymunk collison
+        else:
+            self.bot.timestep(1/30)
+            self.body.position = (self.bot._pos[0] + 100, self.bot._pos[1] + 400)
+            self.bot.pymunk_position_update(self.body.position)
 
     def draw(self):
         pygame.draw.circle(self.pygame_display, self.color, self.body.position, self.radius)
@@ -42,10 +50,19 @@ class Pymunk_Bot:
     def draw_sensors(self):
         sensors = self.bot._sensors
         for sensor in sensors:
-            start, end = sensor.get_sensor_position(self.bot._pymunk_position)
-            pygame.draw.line(self.pygame_display, self.color, (start[0], start[1]), (end[0], end[1]), 5)
-            if sensor._offset == 0:
-                pygame.draw.line(self.pygame_display, (255, 0, 0), (start[0], start[1]), (end[0], end[1]), 5)
+            # Case 1: Using pymunk auto collision, not our own collision
+            if self.pymunk_collision:
+                start, end = sensor.get_sensor_position(self.bot._pymunk_position)
+                pygame.draw.line(self.pygame_display, self.color, (start[0], start[1]), (end[0], end[1]), 5)
+                if sensor._offset == 0:
+                    pygame.draw.line(self.pygame_display, (255, 0, 0), (start[0], start[1]), (end[0], end[1]), 5)
+            # Case 2: Using our own collision, not pymunk collison
+            else:
+                start, end = sensor.get_sensor_position(self.bot._pos)
+                pygame.draw.line(self.pygame_display, self.color, (start[0]+100, start[1]+400), (end[0]+100, end[1]+400), 5)
+                if sensor._offset == 0:
+                    pygame.draw.line(self.pygame_display, (255, 0, 0), (start[0]+100, start[1]+400), (end[0]+100, end[1]+400), 5)
+
 
 
     # def to_pygame(self, value):

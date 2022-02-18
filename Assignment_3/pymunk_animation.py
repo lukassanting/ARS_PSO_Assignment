@@ -44,6 +44,7 @@ def simulation(FPS=30):
                   obstacle_edges=edges,
                   wall_distance=280,          # !! doesn't match edge locations: expects square room from old impl !!
                   collision_check=False,      # !! wall_distance needs to be correct before setting collision to True !!
+                  slide_collision_check=True,
                   pymunk_offset=[100,400,0])  # x, y position offset, as backend logic is based on 0,0
 
     # Make the pymunk-pygame Bot, taking the motion_model Robot as an argument
@@ -52,7 +53,7 @@ def simulation(FPS=30):
                      pymunk_space=space,
                      radius=bot_radius,
                      color=black,
-                     pymunk_collision=True)
+                     pymunk_collision=False)
 
     # Use earlier defined obstacle edges to create walls for Pymunk Visuals & Pygame Graphics
     walls = []

@@ -1,3 +1,4 @@
+import math
 
 import numpy as np
 from vpython import *
@@ -20,7 +21,8 @@ class Robot():
                  sensor_measuring_distance=10,
                  obstacle_edges=None,
                  wall_distance=20,
-                 collision_check=True,
+                 collision_check=False,
+                 slide_collision_check=True,
                  pymunk_offset=[0,0,0]) -> None:
         assert distance_between_wheels>0, 'Distance between wheels must be positive'
         self._start = pos
@@ -39,15 +41,20 @@ class Robot():
         self._sensors = []
         self._obstacle_edges = obstacle_edges
         self._collision_sensor = DistanceSensor(0, self._body_r, np.round((self._vel_right+self._vel_left)/2, decimals=8), self._obstacle_edges)
+        self._forward_sensor = None
         self._wall_distance = wall_distance
         self._collision_check = collision_check
+        self._slide_collision_check = slide_collision_check
         self._theta = self._pos[2]                          # used as angle for pymunk
         self._pymunk_position = self._pos + pymunk_offset   # keeps track of pymunk position
 
         for i in range(num_sensors):
             offset = np.linspace(0, 360, self._num_sens, endpoint=False)[i]
             offset = degrees_to_radians(offset)
-            self._sensors.append(DistanceSensor(offset, self._body_r, self._sens_dist, self._obstacle_edges))
+            sensor = DistanceSensor(offset, self._body_r, self._sens_dist, self._obstacle_edges)
+            if offset == 0:
+                self._forward_sensor = sensor
+            self._sensors.append(sensor)
 
     # -------------------------------------------------------------
     # ---------------------- 'GET' FUNCTIONS ----------------------
@@ -98,13 +105,6 @@ class Robot():
         for sensor in self._sensors:
             distances.append(sensor._dist_to_wall)
         return distances
-
-    def get_xy_velocity(self, dt=1/30):
-        vel_forward = np.round((self._vel_right+self._vel_left)/2, decimals=8)
-        move_x = dt*(np.round(vel_forward*np.cos(self._theta), decimals=8))
-        move_y = dt*(np.round(vel_forward*np.sin(self._theta), decimals=8))
-        self._theta += dt*0.1*(1/self._l)*(self._vel_right-self._vel_left)
-        return [move_x, move_y]
 
     # ------------------------------------------------------
     # --------- MANIPULATING & UPDATING VELOCITY -----------
@@ -212,13 +212,23 @@ class Robot():
         # https://www.youtube.com/watch?v=aE7RQNhwnPQ
         # define radius of the wheel to be 1:
         vel_forward = np.round((self._vel_right+self._vel_left)/2, decimals=8)
-        deriv_x = 0.5*(vel_forward)*np.cos(self._pos[2]) # not sure why it is 0.5 anymore, maybe this depends on the distance between wheels or the radius of the robot or sth. Rewatch the video for that.
-        deriv_y = 0.5*(vel_forward)*np.sin(self._pos[2])
-        deriv_theta = (1/self._l)*(self._vel_right-self._vel_left)
-        if self._collision_check:
+        deriv_x = (vel_forward)*np.cos(self._pos[2]) # not sure why it is 0.5 anymore, maybe this depends on the distance between wheels or the radius of the robot or sth. Rewatch the video for that.
+        deriv_y = (vel_forward)*np.sin(self._pos[2])
+        deriv_theta = 0.1*(1/self._l)*(self._vel_right-self._vel_left)
+
+        # Case 1: New collision type (doesn't work yet)
+        if self._slide_collision_check:
+            intersec_coords = self._forward_sensor.intersection_coordinates(self._pymunk_position)
+            if intersec_coords is not None:
+                deriv_x, deriv_y = self.collision_slide(intersec_coords, deriv_x, deriv_y)
+                print(intersec_coords)
+            self._pos = self._pos + time_elapsed*np.array([deriv_x, deriv_y, deriv_theta])
+        # Case 2: Previous collision type (Only works for 4 square hardcoded walls)
+        elif self._collision_check:
             # test collision movement
             temp_pos = self._pos + time_elapsed*np.array([deriv_x, deriv_y, deriv_theta])
             self._pos = np.append(np.clip(temp_pos[:-1], a_min=-1*self._wall_distance+self._body_r, a_max=self._wall_distance-self._body_r), temp_pos[2])  # careful, boundaries are hard coded for now!!!
+        # Case 3: No collision check
         else:
             # end test collision movement
             self._pos = self._pos + time_elapsed*np.array([deriv_x, deriv_y, deriv_theta])
@@ -229,6 +239,15 @@ class Robot():
         self._collision_sensor.update(self._pos)
         self._collision_sensor._sens_dist = np.round(0.5*(self._vel_left+self._vel_right)*self._time_step_size, decimals=8)
 
+    def get_xy_velocity(self, dt=1 / 30):
+
+        vel_forward = np.round((self._vel_right + self._vel_left) / 2, decimals=8)
+        vel_x = dt * (np.round(vel_forward * np.cos(self._theta), decimals=8))
+        vel_y = dt * (np.round(vel_forward * np.sin(self._theta), decimals=8))
+        self._theta += dt * 0.1 * (1 / self._l) * (self._vel_right - self._vel_left)
+
+        return [vel_x, vel_y]
+
     def pymunk_position_update(self, coords):
         self._pymunk_position[0] = coords[0]
         self._pymunk_position[1] = coords[1]
@@ -238,6 +257,18 @@ class Robot():
     # ----------------------------------------------------------
     # ------------- ADVANCED COLLISION DETECTION ---------------
     # ----------------------------------------------------------
+
+    def collision_slide(self, intersec_coords, x_vel, y_vel):
+        nx = intersec_coords[0]
+        ny = intersec_coords[1]
+        magnitude = math.sqrt((nx*nx)+(ny*ny))
+        if magnitude == 0: magnitude = 1
+        nx = nx / magnitude
+        ny = ny / magnitude
+        dotprod = (nx * x_vel) + (ny * y_vel)
+        new_x_vel = x_vel - (dotprod * nx)
+        new_y_vel = y_vel - (dotprod * ny)
+        return [new_x_vel, new_y_vel]
 
     '''
     def check_for_immediate_collision(self):

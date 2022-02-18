@@ -57,13 +57,13 @@ class DistanceSensor():
         self.object_detected(pos_robot, verbose=verbose)
 
     def object_detected(self, pos_robot, verbose=False):
-        
+
         walls = self._obstacle_edges
 
         sensor_start, sensor_end = self.get_sensor_position(pos_robot)
         sensor_line = LineString([tuple(sensor_start), tuple(sensor_end)])
 
-        # check if there is intersection with the 4 walls
+        # check if there is intersection with the walls
         for w in walls:
             int_pt = sensor_line.intersection(w)  # point of intersection with the wall
             int_pt = list(int_pt.coords)
@@ -89,7 +89,7 @@ class DistanceSensor():
         sensor_start, sensor_end = self.get_sensor_position(pos_robot)
         sensor_line = LineString([tuple(sensor_start), tuple(sensor_end)])
 
-        # check if there is intersection with the 4 walls
+        # check if there is intersection with the walls
         for w in walls:
             int_pt = sensor_line.intersection(w) # point of intersection with the wall
             if not sensor_line.intersection(w).is_empty:
