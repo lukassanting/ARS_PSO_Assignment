@@ -44,6 +44,9 @@ class Pymunk_Bot:
         for sensor in sensors:
             start, end = sensor.get_sensor_position(self.bot._pymunk_position)
             pygame.draw.line(self.pygame_display, self.color, (start[0], start[1]), (end[0], end[1]), 5)
+            if sensor._offset == 0:
+                pygame.draw.line(self.pygame_display, (255, 0, 0), (start[0], start[1]), (end[0], end[1]), 5)
+
 
     # def to_pygame(self, value):
     #     return value + 300

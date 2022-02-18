@@ -103,7 +103,7 @@ class Robot():
         vel_forward = np.round((self._vel_right+self._vel_left)/2, decimals=8)
         move_x = dt*(np.round(vel_forward*np.cos(self._theta), decimals=8))
         move_y = dt*(np.round(vel_forward*np.sin(self._theta), decimals=8))
-        self._theta += dt*0.5*(1/self._l)*(self._vel_right-self._vel_left)
+        self._theta += dt*0.1*(1/self._l)*(self._vel_right-self._vel_left)
         return [move_x, move_y]
 
     # ------------------------------------------------------
