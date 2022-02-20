@@ -1,18 +1,5 @@
 import numpy as np
-import struct
-
-# https://stackoverflow.com/questions/8751653/how-to-convert-a-binary-string-into-a-float-value?noredirect=1&lq=1
-
-def binary_to_float(number: str) -> float:
-    return struct.unpack('!f', struct.pack('!I', int(number, 2)))[0]
-
-def float_to_binary(number: float) -> str:
-    return bin(struct.unpack('!I', struct.pack('!f', number))[0])[2:].zfill(32)
-
-# return array of binarized weights
-def weights_to_binary(weights: np.array) -> np.array:
-    return np.array([float_to_binary(w) for w in weights])
-
+from helper import *
 
 # ------------------------------------------------------
 # ----------------- GENETIC OPERATORS ------------------
