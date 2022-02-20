@@ -67,7 +67,7 @@ def update_distance_dashboard():
     dashboard.text += "Reset bot position: 'r'"
 
 # initialize instance of Robot class
-bot = Robot([0, 0, 0], acceleration=0.5, num_sensors=num_sensors, wall_distance=20)
+bot = Robot([0, 0, 0], acceleration=0.5, num_sensors=num_sensors, wall_distance=20, collision_check=False)
 
 # Function that defines a simulation & updates the scene
 def simulation(animation_rate):
