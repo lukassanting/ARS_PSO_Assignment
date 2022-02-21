@@ -32,9 +32,6 @@ class Ann():
                 self._layers.append(Layer(weights, num_nodes, layers[index+1], has_bias))
             self._layers.append(Layer(layers[-1], None, bias[-1]))
 
-    def layers(self):
-        return self._layers
-
     def prop_forward(self, input_sensors:np.ndarray):
         # input_sensors are the activations of the input layer given as an np.ndarray
         node_activations = input_sensors
@@ -71,9 +68,6 @@ class Layer():
                 num_weights = (self._bias + self._num_nodes + self._num_next) * self._num_next # connections from bias node + normal nodes + recurrent/memory nodes to next layer
                 self._weights = np.random.uniform(low=-10, high=10, size = num_weights).reshape(self._num_next, self._bias + self._num_nodes + self._num_next)
 
-    def weights(self):
-        return self._weights
-
     def calc_activations(self, inputs_prev_layer:np.ndarray, activation_function=sigmoid):
         assert (inputs_prev_layer.shape[0] == self._num_nodes), f'Array inputs_from_prev_layer is incompatible with layer size. Array has shape {inputs_prev_layer.shape}, but layer requires shape {(self._num_nodes,)}'
         
@@ -97,9 +91,6 @@ class Layer():
 
 # testing if code works
 # network = Ann(layers=(2,12,4,2), bias=(False,True,True,False))
-# for l in network._layers:
-#     print("-----------------------")
-#     print(l._weights)
 # print(network.prop_forward(input_sensors=np.array([1, 4])))
 
 

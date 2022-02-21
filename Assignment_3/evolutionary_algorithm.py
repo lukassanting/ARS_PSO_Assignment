@@ -208,18 +208,28 @@ def bit_string_mutation(individual: Individual, mutation_rate=0.05) -> str:
 POPULATION_SIZE = 10
 GENOTYPE_LENGTH = 10
 
-population = [Individual(np.random.randint(100), GENOTYPE_LENGTH) for i in range(POPULATION_SIZE)]
-
-# dominant_pop = roulette_wheel_selection(inds)
-dominant_pop = linear_rank_selection(population)
-
-# get unique individuals
-dominant_pop = list(set(dominant_pop))
-
-# crossover 2 dominant individuals and get 2 children
-offsprings = N_point_crossover(dominant_pop[0], dominant_pop[1], 1)
-verbose_individuals_fitness(offsprings, True)
-
-# mutate 1 individual
-
-print(bit_string_mutation(offsprings[0]))
+# individual = Individual(np.random.randint(100), GENOTYPE_LENGTH)
+# individual2 = Individual(np.random.randint(100), GENOTYPE_LENGTH)
+# print(individual.float_genotype)
+# print(individual2.float_genotype)
+#
+#
+# child, child2 = N_point_crossover(individual, individual2, 5)
+# print(child.float_genotype)
+# print(child2.float_genotype)
+#
+# population = [Individual(np.random.randint(100), GENOTYPE_LENGTH) for i in range(POPULATION_SIZE)]
+#
+# # dominant_pop = roulette_wheel_selection(inds)
+# dominant_pop = linear_rank_selection(population)
+#
+# # get unique individuals
+# dominant_pop = list(set(dominant_pop))
+#
+# # crossover 2 dominant individuals and get 2 children
+# offsprings = N_point_crossover(dominant_pop[0], dominant_pop[1], 1)
+# verbose_individuals_fitness(offsprings, True)
+#
+# # mutate 1 individual
+#
+# print(bit_string_mutation(offsprings[0]))
