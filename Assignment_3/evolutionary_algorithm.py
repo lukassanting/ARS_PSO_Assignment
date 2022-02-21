@@ -52,7 +52,8 @@ class Population():
         for step in range(time/update_rate):
             networks = [helper.array_to_network(individual.float_genotype, self._layers, self._bias) for individual in self._individuals]
             for i in range(self._size):
-                velocity = networks[i].prop_forward(input_sensors=np.array([pos[0][i], pos[1][i]]))
+                inputs = get_ann_inputs(pos[0][i], pos[1][i])
+                velocity = networks[i].prop_forward(inputs)
                 pos[0][i] += update_rate*velocity[0]
                 pos[1][i] += update_rate*velocity[1]
 
