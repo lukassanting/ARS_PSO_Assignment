@@ -22,7 +22,7 @@ class Ann():
                 # only loop until the last layer is reached: the last layers has no weights and would throw an exception when
                 # layer[index+1] is being called
                 self._layers.append(Layer(weights=None, num_nodes=num_nodes, num_nodes_next_layer=layers[index+1], has_bias_node=has_bias))
-            self._layers.append(Layer(weights=None, num_nodes=layers[-1], num_nodes_next_layer=None, has_bias_node=bias[-1]))
+            self._layers.append(Layer(weights=None, num_nodes=layers[-1], num_nodes_next_layer=0, has_bias_node=bias[-1]))
 
         else:
             # use weights defined by genotype to initialize weights
@@ -41,7 +41,7 @@ class Ann():
             # input and output layers are handled outside the loop
             node_activations = layer.calc_activations(inputs_next_layer)
             inputs_next_layer = layer.calc_inputs_next_layer(node_activations)
-            self._layers[index-1]._previous_activations_next_layer = node_activations # updating next layer activations for recurrent nodes
+            self._layers[index]._previous_activations_next_layer = node_activations[layer._bias:] # updating next layer activations for recurrent nodes
 
         activations_output_layer = self._layers[-1].calc_activations(inputs_next_layer)
         self._layers[-2]._previous_activations_next_layer = activations_output_layer # updating next layer activations for recurrent nodes
@@ -79,7 +79,6 @@ class Layer():
 
 
     def calc_inputs_next_layer(self, activations):
-        # print('Weights')
         # print(self._weights)
         # print()
         # print()
@@ -90,8 +89,12 @@ class Layer():
 
 
 # testing if code works
-# network = Ann(layers=(2,12,4,2), bias=(False,True,True,False))
-# print(network.prop_forward(input_sensors=np.array([1, 4])))
+network = Ann(layers=(2,12,4,2), bias=(False,True,True,False))
+coords = network.prop_forward(input_sensors=np.array([1, 4]))
+print(type(coords))
+coords2 = network.prop_forward(input_sensors=coords)
+coords3 = network.prop_forward(input_sensors=coords2)
+coords4 = network.prop_forward(input_sensors=coords3)
 
 
 
