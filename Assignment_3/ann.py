@@ -26,10 +26,10 @@ class Ann():
 
         else:
             # use weights defined by genotype to initialize weights
-            for index, (weights, num_nodes, has_bias) in enumerate(zip(genotype[:-1], layers[:-1], bias[:-1])):
+            for index, (weights, num_nodes, has_bias) in enumerate(zip(genotype, layers[:-1], bias[:-1])):
                 # only loop until the last layer is reached: the last layers has no weights and would throw an exception when
                 # layer[index+1] is being called
-                self._layers.append(Layer(weights, num_nodes, layers[index+1], has_bias))
+                self._layers.append(Layer(weights=weights, num_nodes=num_nodes, num_nodes_next_layer=layers[index+1], has_bias_node=has_bias))
             self._layers.append(Layer(weights=None, num_nodes=layers[-1],  num_nodes_next_layer=None, has_bias_node=bias[-1]))
 
     def prop_forward(self, input_sensors:np.ndarray):
