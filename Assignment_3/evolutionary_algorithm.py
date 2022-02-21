@@ -1,12 +1,62 @@
 import numpy as np
+from sqlalchemy import func
 import helper
 import struct
+from typing import Tuple
 
 # https://stackoverflow.com/questions/8751653/how-to-convert-a-binary-string-into-a-float-value?noredirect=1&lq=1
 
 # return array of binarized weights
 # def weights_to_binary(weights: np.array) -> np.array:
 #     return np.array([float_to_binary(w) for w in weights])
+
+class Population():
+
+    def __init__(self, num_individuals, ann_layers:Tuple[int], bias_nodes:Tuple[bool], fitness_func:func) -> None:
+        self._size = num_individuals
+        self._layers = ann_layers
+        self._bias = bias_nodes
+        self._fit_func = fitness_func
+        self._fit_func_dim = func.__code__.co_argcount
+        self._indiv_gene_length = helper.get_network_size(self._layers)
+        self._individuals = [Individual(0, self._indiv_gene_length) for i in range(self._size)]
+
+    def initial_positions(self, center:np.ndarray=None, width:float=1) -> np.ndarray:
+        """Generates initial positions for individuals in a "num_dimensions"-dimensional space.
+        Coordinates are drawn from a uniform random distribution centered at "center" width of intervall_length
+
+        Args:
+            num_dimensions (int): number of dimensions for the coordinates to be generated
+            center (np.ndarray): (x,y) center of the uniform distribution
+            width (float): width of the uniform distribution
+
+        Returns:
+            np.ndarray: starting positions for "self._size" individuals to start their movements
+        """ 
+        if center is None:
+            center = np.zeros(self._fit_func_dim)    
+
+        assert center.ndim == 1, 'Center only accepts one-dimensional arrays.'
+        assert center.shape[0] == self._fit_func_dim, 'Number of dimensions does not match dimensionality of center for the uniform distribution'
+
+        XY = np.random.rand(self._fit_func_dim, self._size) * width
+        center_shift = np.array([np.ones(self._size)*c for c in center])
+        XY = np.add(XY, center_shift)
+
+    def lifecycle(self, time:int, get_ann_inputs:func, update_rate:float=1/50, center:np.ndarray=None, width:float=1):
+        ''' get_ann_inputs needs to be a function that takes the position of the individual as an input and returns
+            the values that should be passed as inputs to the ANN (e.g. the gradients for the benchmark functions) or
+            the distance sensor measurements for the robot.
+            update_rate needs to be 1/XX where XX is an integer '''
+        pos = self.initial_positions(self._fit_func_dim, center, width)
+        for step in range(time/update_rate):
+            networks = [helper.array_to_network(individual.float_genotype, self._layers, self._bias) for individual in self._individuals]
+            for i in range(self._size):
+                velocity = networks[i].prop_forward(input_sensors=np.array([pos[0][i], pos[1][i]]))
+                pos[0][i] += update_rate*velocity[0]
+                pos[1][i] += update_rate*velocity[1]
+
+
 
 class Individual():
     
