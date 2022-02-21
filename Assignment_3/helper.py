@@ -89,12 +89,14 @@ def accumulate(input):
 
 
 def get_network_size(layers: Tuple[int]) -> int:
-    """ Return the total number of weights in a network based on size of each layer """
+    """ Return the total number of weights in a network based on size of each layer.
+        Currently has hard-coded that every layer except input- and output has a bias node. """
     return sum(get_network_layer_size(layers))
 
 
 def get_network_layer_size(layers: Tuple[int]) -> List[int]:
-    """ Return a list of the number of weights in each layer of a network based on size of each layer """
+    """ Return a list of the number of weights in each layer of a network based on size of each layer.
+        Currently has hard-coded that every layer except input- and output has a bias node. """
     size = [layers[1] * (layers[0] + layers[1])]
     if len(layers) > 2:
         for i in range(len(layers) - 2):
