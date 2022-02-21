@@ -89,72 +89,9 @@ class Layer():
 
 
 # testing if code works
-network = Ann(layers=(2,12,4,2), bias=(False,True,True,False))
-coords = network.prop_forward(input_sensors=np.array([1, 4]))
-print(type(coords))
-coords2 = network.prop_forward(input_sensors=coords)
-coords3 = network.prop_forward(input_sensors=coords2)
-coords4 = network.prop_forward(input_sensors=coords3)
-
-
-
-# ---------- Old Code ---------- #
-# no need to look at this
-
-# class layer():
-#     def __init__(self, num_nodes:int, num_nodes_next_layer:int=None, bias:bool=False, recurrent:bool=False) -> None:
-#         assert ((num_nodes is None) and (not recurrent)), 'Last layer has memory, recurrency is already included. Please specify recurrent=False for the last layer.'
-
-#         self._bias_node = bias
-#         self._num_nodes = num_nodes # num_nodes is not counting the bias node
-#         self._num_next = num_nodes_next_layer
-#         self._recurrent = recurrent
-    
-#         if self._num_next is None:
-#             # only the last layer should have num_nodes_next_layer=None
-#             # this is done to give the ANN "memory" of its previous final outputs
-#             self._weights_to_next = None
-#             self._weights_to_self = np.random.uniform(low=-10, high=10, size = self._num_nodes**2).reshape(self._num_nodes, self._num_nodes)
-#         else:
-#             self._num_weights = (self._num_nodes + self._bias_node) * self._num_next + (self._recurrent * self._num_nodes) # connections from nodes to next layer + recurrent connections
-
-#         self._weights = np.random.uniform(low=-10, high=10, size = self._num_weights).reshape(self._num_next, self._num_nodes)
-
-#         if self._recurrent or (self._num_next is None):
-#             # previous activations need to be stored for recurrent layers and for ouput layer to implement memory
-#             self._previous_activations = np.zeros(self._num_nodes)
-#         else: self._previous_activations = None
-
-#     @property
-#     def bias_node(self):
-#         return self._has_bias_node
-
-#     @property
-#     def weights(self):
-#         return self._weights
-
-#     @weights.setter
-#     def weights(self, weights:np.ndarray):
-#         assert (weights.shape == (self._num_weights,)), f'Weight array incompatible with layer size. Array has shape {weights.shape}, but layer requires shape {(self._num_weights,)}'
-#         self._weights = weights
-
-#     def calc_activations(self, inputs_from_prev_layer:np.ndarray):
-#         assert (inputs_from_prev_layer.shape == (self._num_nodes)), 'Array inputs_from_prev_layer is incompatible with layer size. Array has shape {inputs_from_prev_layer.shape}, but layer requires shape {(self._num_nodes,)}'
-        
-#         if self._recurrent:
-#             # if layer is a recurrent layer, own activations from the previous timestep also influence activations of next time step
-#             num_connections_to_next = (self._num_nodes + self._bias_node) * self._num_next
-#             inputs = inputs_from_prev_layer + (np.multiply(self.weights[num_connections_to_next:], self._previous_activations))
-#             return np.apply_along_axis(sigmoid, 0, inputs)
-        
-#         elif self._num_next is None:
-#             # only the last layer should have num_nodes_next_layer=None
-#             inputs = inputs_from_prev_layer + (np.multiply(self.weights, self._previous_activations))
-#             pass
-        
-#         else:
-#             return np.apply_along_axis(sigmoid, 0, inputs_from_prev_layer)
-
-#     def calc_inputs_next_layer(self):
-        
-#         pass
+# network = Ann(layers=(2,12,4,2), bias=(False,True,True,False))
+# coords = network.prop_forward(input_sensors=np.array([1, 4]))
+# print(type(coords))
+# coords2 = network.prop_forward(input_sensors=coords)
+# coords3 = network.prop_forward(input_sensors=coords2)
+# coords4 = network.prop_forward(input_sensors=coords3)
