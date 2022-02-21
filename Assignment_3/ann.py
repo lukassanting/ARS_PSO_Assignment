@@ -2,7 +2,7 @@ import numpy as np
 from typing import List, Tuple
 from scipy.special import expit as sigmoid
 
-# ---------- Artificiail Neural Network Class ---------- #
+# ---------- Artificial Neural Network Class ---------- #
 
 class Ann():
     def __init__(self, layers:Tuple[int], bias:Tuple[bool], genotype:List[np.ndarray]=None) -> None:
@@ -11,7 +11,7 @@ class Ann():
         # "bias" should be a Tuple of booleans where the first element says if the first layer has a bias node, the second element says
         # if the second layer has a bias node and so on. The first layer (input layer) and the last layer (output layer) should not have a bias nodes.
         # "genotype" should be a list of 2-dimensional numpy-arrays (matrix). The first element of the list, i.e. the first matrix should
-        # specify the weights of the connections between the first and the second layer of the ANN. Therefore, the list should have a lenght of
+        # specify the weights of the connections between the first and the second layer of the ANN. Therefore, the list should have a length of
         # n-1, where n is the number of layers (including input and output layers) that the ANN has
         self._layers = []
 
@@ -32,6 +32,8 @@ class Ann():
                 self._layers.append(Layer(weights, num_nodes, layers[index+1], has_bias))
             self._layers.append(Layer(layers[-1], None, bias[-1]))
 
+    def layers(self):
+        return self._layers
 
     def prop_forward(self, input_sensors:np.ndarray):
         # input_sensors are the activations of the input layer given as an np.ndarray
@@ -69,6 +71,8 @@ class Layer():
                 num_weights = (self._bias + self._num_nodes + self._num_next) * self._num_next # connections from bias node + normal nodes + recurrent/memory nodes to next layer
                 self._weights = np.random.uniform(low=-10, high=10, size = num_weights).reshape(self._num_next, self._bias + self._num_nodes + self._num_next)
 
+    def weights(self):
+        return self._weights
 
     def calc_activations(self, inputs_prev_layer:np.ndarray, activation_function=sigmoid):
         assert (inputs_prev_layer.shape[0] == self._num_nodes), f'Array inputs_from_prev_layer is incompatible with layer size. Array has shape {inputs_prev_layer.shape}, but layer requires shape {(self._num_nodes,)}'
@@ -93,6 +97,9 @@ class Layer():
 
 # testing if code works
 # network = Ann(layers=(2,12,4,2), bias=(False,True,True,False))
+# for l in network._layers:
+#     print("-----------------------")
+#     print(l._weights)
 # print(network.prop_forward(input_sensors=np.array([1, 4])))
 
 
