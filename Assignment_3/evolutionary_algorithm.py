@@ -17,7 +17,7 @@ class Population():
         self._layers = ann_layers
         self._bias = bias_nodes
         self._fit_func = fitness_func
-        self._fit_func_dim = func.__code__.co_argcount
+        self._fit_func_dim = func.__code__.co_argcount-len(func.__defaults__)
         self._indiv_gene_length = helper.get_network_size(self._layers)
         self._individuals = [Individual(0, self._indiv_gene_length) for i in range(self._size)]
 
@@ -56,8 +56,7 @@ class Population():
                 velocity = networks[i].prop_forward(inputs)
                 pos[0][i] += update_rate*velocity[0]
                 pos[1][i] += update_rate*velocity[1]
-
-
+            
 
 class Individual():
     
