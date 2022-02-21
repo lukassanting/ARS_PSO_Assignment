@@ -1,5 +1,6 @@
 import numpy as np
 import struct
+from typing import List
 from ann import *
 
 
@@ -35,23 +36,23 @@ def binary_to_weightlayer(binary: np.array) -> np.array:
     return np.array([array_to_float(arr) for arr in binary])
 
 
-def weights_to_binary(weights: []) -> []:
+def weights_to_binary(weights: List) -> List:
     """ Convert list of matrices of floats to list of matrices of binary strings. """
     return [weightlayer_to_binary(l) for l in weights]
 
 
-def binary_to_weights(binary: []) -> []:
+def binary_to_weights(binary: List) -> List:
     """ Convert list of matrices of binary strings to list of matrices of floats. """
     return [binary_to_weightlayer(l) for l in binary]
 
 
-def ann_to_list(network: Ann) -> []:
+def ann_to_list(network: Ann) -> List:
     """ Convert instance of Ann to list of np.arrays for each layer connection. """
     return [layer.weights for layer in network.layers]
 
 
 def array_to_network(weights: np.array, network_layer_sizes: Tuple[int], network_layer_biases:Tuple[bool]) -> Ann:
-    """ weights:                single-dimensional array with all the weights for the network
+    """ weights:                single-dimensional (floating point number) array with all the weights for the network
         network_layer_sizes:    Tuple specifying the number of nodes in each layer
         network_layer_biases:   Tuple specifying which layers have bias nodes (only included for network creation at
                                 of this function, this function assumes that only middle nodes have biases.
@@ -92,7 +93,7 @@ def get_network_size(layers: Tuple[int]) -> int:
     return sum(get_network_layer_size(layers))
 
 
-def get_network_layer_size(layers: Tuple[int]) -> [int]:
+def get_network_layer_size(layers: Tuple[int]) -> List[int]:
     """ Return a list of the number of weights in each layer of a network based on size of each layer """
     size = [layers[1] * (layers[0] + layers[1])]
     if len(layers) > 2:
