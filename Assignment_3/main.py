@@ -91,7 +91,9 @@ def evolution(
     # networks = [helper.array_to_network(individual.float_genotype, network_layers, bias) for individual in population]
     # XY_coords = walk_around(networks, XY_coords, population_size, step_size, verbose)
 
-evolution(ann_layers=(2,12,4,2), bias_nodes=(False,True,True,False), pop_size=10, verbose=False)
+# evolution(ann_layers=(2,12,4,2), bias_nodes=(False,True,True,False), pop_size=10, verbose=False)
+population = Population(num_individuals=10, ann_layers=(2,12,4,2), bias_nodes=(False,True,True,False), fitness_func=rosenbrock)
+population.lifecycle(time=5, get_ann_inputs=rosenbrock_grad)
 
 # VALUES ARE SET DEPENDENT ON CHOSEN FUNCTION
 # Set values of variables for algorithm and plot for optimising Rosenbrock algorithm

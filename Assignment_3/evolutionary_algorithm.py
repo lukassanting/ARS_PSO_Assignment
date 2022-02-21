@@ -17,8 +17,7 @@ class Population():
         self._layers = ann_layers
         self._bias = bias_nodes
         self._fit_func = fitness_func
-        # self._fit_func_dim = func.__code__.co_argcount-len(func.__defaults__)
-        self._fit_func_dim = 2 # carefull!! hard coded for now
+        self._fit_func_dim = self._fit_func.__code__.co_argcount-len(self._fit_func.__defaults__)
         self._indiv_gene_length = helper.get_network_size(self._layers)
         self._individuals = [Individual(0, self._indiv_gene_length) for i in range(self._size)]
 
@@ -43,20 +42,22 @@ class Population():
         XY = np.random.rand(self._fit_func_dim, self._size) * width
         center_shift = np.array([np.ones(self._size)*c for c in center])
         XY = np.add(XY, center_shift)
+        return XY
 
     def lifecycle(self, time:int, get_ann_inputs:func, update_rate:float=1/50, center:np.ndarray=None, width:float=1):
         ''' get_ann_inputs needs to be a function that takes the position of the individual as an input and returns
             the values that should be passed as inputs to the ANN (e.g. the gradients for the benchmark functions) or
             the distance sensor measurements for the robot.
             update_rate needs to be 1/XX where XX is an integer '''
-        pos = self.initial_positions(self._fit_func_dim, center, width)
-        for step in range(time/update_rate):
+        pos = self.initial_positions(center, width)
+        for step in range(int(time/update_rate)):
             networks = [helper.array_to_network(individual.float_genotype, self._layers, self._bias) for individual in self._individuals]
             for i in range(self._size):
                 inputs = get_ann_inputs(pos[0][i], pos[1][i])
                 velocity = networks[i].prop_forward(inputs)
                 pos[0][i] += update_rate*velocity[0]
                 pos[1][i] += update_rate*velocity[1]
+                print(f'pos is {pos}')
             
 
 class Individual():
