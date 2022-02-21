@@ -28,6 +28,12 @@ def rastigrin(x, y):
 def rastigrin_grad(x, y):
     return [2 * x + 20 * np.pi * np.sin(2 * np.pi * x), 2 * y + 20 * np.pi * np.sin(2 * np.pi * y)]
 
+optimiser_fn = rosenbrock
+grad_fn = rosenbrock_grad
+if opt_func == "rastigrin":
+    optimiser_fn = rastigrin
+    grad_fn = rastigrin_grad
+
 
 #  ---------------- EVOLUTION -------------------
 
@@ -73,19 +79,19 @@ def walk_around(networks, XY_coords, pop_size, step_size=1, verbose=False):
 
 
 def evolution(
-        network_layers:Tuple[int],
-        bias:Tuple[bool],
-        population_size:int = 10,
+        ann_layers:Tuple[int],
+        bias_nodes:Tuple[bool],
+        pop_size:int = 10,
         step_size:int = 1,
         verbose:bool = False):
     XY_coords = initialise_in_function(opt_func, 10)    # Will be used for animation later
-    size = helper.get_network_size(network_layers)
+    # size = helper.get_network_size(ann_layers)
+    population = Population(num_individuals=pop_size, ann_layers=ann_layers, bias_nodes=bias_nodes, fitness_func=rosenbrock)
+    # population = [Individual(0, size) for i in range(population_size)]
+    # networks = [helper.array_to_network(individual.float_genotype, network_layers, bias) for individual in population]
+    # XY_coords = walk_around(networks, XY_coords, population_size, step_size, verbose)
 
-    population = [Individual(0, size) for i in range(population_size)]
-    networks = [helper.array_to_network(individual.float_genotype, network_layers, bias) for individual in population]
-    XY_coords = walk_around(networks, XY_coords, population_size, step_size, verbose)
-
-evolution(network_layers=(2,12,4,2), bias=(False,True,True,False), population_size=10, verbose=False)
+evolution(ann_layers=(2,12,4,2), bias_nodes=(False,True,True,False), pop_size=10, verbose=False)
 
 # VALUES ARE SET DEPENDENT ON CHOSEN FUNCTION
 # Set values of variables for algorithm and plot for optimising Rosenbrock algorithm
