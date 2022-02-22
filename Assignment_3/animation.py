@@ -5,7 +5,7 @@ from matplotlib.animation import FuncAnimation
 
 
 class Animation:
-    def __init__(self, opt_func, XY, V):
+    def __init__(self, opt_func, XY, V=None):
         self.opt_func = opt_func
         self._XY = XY
         self._V = V
@@ -15,8 +15,8 @@ class Animation:
     def get_plot_vals(self):
         if self.opt_func == "rosenbrock":
             return self.rosenbrock, -2, 2, -1, 3
-        else:    # self.opt_func === rastigrin
-            return self.rastigrin, -5, 5, -5, 5
+        else:    # self.opt_func === rastrigin
+            return self.rastrigin, -5, 5, -5, 5
 
     def setup_plot(self):
         x, y = np.array(np.meshgrid(np.linspace(self._plot_xlow, self._plot_xhigh, 1000), np.linspace(self._plot_ylow, self._plot_yhigh, 1000)))
@@ -35,7 +35,10 @@ class Animation:
         # Add particles to plot
         ax.plot([x_min], [y_min], marker='x', markersize=5, color="black")          # global minimum shown as 'x'
         p_current = ax.scatter(XY[0][0], XY[0][1], marker='o', color="blue")                # current particle locations
-        p_arrows = ax.quiver(XY[0][0], XY[0][1], V[0][0], V[0][1], color='blue', width=0.005)     # vectors of particles
+        if V is not None:
+            p_arrows = ax.quiver(XY[0][0], XY[0][1], V[0][0], V[0][1], color='blue', width=0.005)     # vectors of particles
+        else: p_arrows = None
+
         ax.set_xlim([self._plot_xlow, self._plot_xhigh])
         ax.set_ylim([self._plot_ylow, self._plot_yhigh])
         return x, y, z, fig, ax, img, p_current, p_arrows
@@ -51,26 +54,30 @@ class Animation:
         V = self._V
 
         self._pcurrent.set_offsets(XY[i])
-        self._parrows.set_offsets(XY[i])
-        self._parrows.set_UVC(V[i][0], V[i][1])
+        if V is not None:
+            self._parrows.set_offsets(XY[i])
+            self._parrows.set_UVC(V[i][0], V[i][1])
         return self._ax, self._pcurrent#, self._parrows
 
     def rosenbrock(self, x, y, a=0, b=150):
         return ((a - x) ** 2) + b * ((y - (x ** 2)) ** 2)
 
-    def rastigrin(self, x, y):
+    def rastrigin(self, x, y):
         return 20 + x ** 2 - 10 * np.cos(2 * np.pi * x) + y ** 2 - 10 * np.cos(2 * np.pi * y)
 
 
-# TESTING CODE
+# # TESTING CODE
 # n_particles=20
 # XY = np.random.rand(n_particles, 2) * 4
 # XY[0] = XY[0] - 2  # Change range of particles on X-axis to be between -2 and 2
 # XY[1] = XY[1] - 1  # Change range of particles on Y-axis to be between -1 and 3
 # V = np.random.randn(n_particles,2) * 0.1
 #
-# new_anim = Animation("rosenbrock", XY, V)
+# new_anim = Animation("rastrigin", XY)
 # anim = new_anim.animate()
+
+
+
 
 # opt_func = "rosenbrock"  # Set to "rosenbrock" or to "rastigrin"
 #
