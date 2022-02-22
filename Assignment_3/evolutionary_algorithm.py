@@ -18,7 +18,12 @@ class History():
         self._fitness = [] # each listelement stores the fitness of all individuals of a generation
         self._genotype_fittest = None
 
-    # TO-DO: implement function that finds the individual with the highes fitness over all generations
+    def fittest_in_new_generationse(self, individuals):
+        fitness = get_all_fitness(individuals)
+        index_fittest = np.where(fitness == np.amax(fitness))
+        pass
+
+    # TO-DO: implement function that finds the individual with the highest fitness over all generations
 
     pass
 
@@ -128,11 +133,9 @@ class Population():
             width (float, optional): see description of initial_position. Defaults to 1.
         """
         for i in range(num_generations):
-            self.lifecycle(time_for_generation, get_ann_inputs, update_rate, center, with)
+            self.lifecycle(time_for_generation, get_ann_inputs, update_rate, center, width)
             self.generational_change()
 
-
-            
             
 
 class Individual():
