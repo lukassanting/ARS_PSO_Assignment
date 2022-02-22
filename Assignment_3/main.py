@@ -34,9 +34,11 @@ def rastigrin_grad(x, y):
 #  ---------------- EVOLUTION -------------------
 
 # evolution(ann_layers=(2,12,4,2), bias_nodes=(False,True,True,False), pop_size=10, verbose=False)
-population = Population(num_individuals=5, ann_layers=(2,12,4,2), bias_nodes=(False,True,True,False), fitness_func=neg_rosenbrock)
-population.evolution(num_generations = 5, time_for_generation=5, get_ann_inputs=rosenbrock_grad, width=3, mutation_rate=0.0001)
+
+population = Population(num_individuals=30, ann_layers=(2,12,4,2), bias_nodes=(False,True,True,False), fitness_func=neg_rosenbrock)
+population.evolution(num_generations=10, time_for_generation=40, get_ann_inputs=rosenbrock_grad, width=1, mutation_rate=0.0001)
 fig = population._history.plot_fitness()
+plt.show()
 anim = population._history.animate_positions()
 
 # def initialise_in_function(func:str = "rosenbrock", population_size:int = 10):
