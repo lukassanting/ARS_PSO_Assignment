@@ -31,73 +31,69 @@ def rastigrin(x, y):
 def rastigrin_grad(x, y):
     return [2 * x + 20 * np.pi * np.sin(2 * np.pi * x), 2 * y + 20 * np.pi * np.sin(2 * np.pi * y)]
 
-optimiser_fn = rosenbrock
-grad_fn = rosenbrock_grad
-if opt_func == "rastigrin":
-    optimiser_fn = rastigrin
-    grad_fn = rastigrin_grad
-
-
 #  ---------------- EVOLUTION -------------------
 
-def initialise_in_function(func:str = "rosenbrock", population_size:int = 10):
-    if func == "rosenbrock":
-        XY = np.random.rand(2, population_size) * 4
-        XY[0] = XY[0] - 2  # Change range of particles on X-axis to be between -2 and 2
-        XY[1] = XY[1] - 1  # Change range of particles on Y-axis to be between -1 and 3
-        # print(f"INIT = {XY[0]}, {XY[1]}")
-        return XY
-    else:    # func == "rastigrin"
-        XY = np.random.rand(2, population_size) * 10
-        XY = XY - 5  # Change range of particles on X-axis and Y-axis to be between -5 and 5
-        return XY
-
-def get_gradients(func, XY_coords, pop_size=10):
-    XY_grads = np.full_like(XY_coords, 1)
-    if func =="rosenbrock":
-        for i in range(pop_size):
-            out_x, out_y = rosenbrock_grad(XY_coords[0][i], XY_coords[1][i])
-            XY_grads[0][i] = out_x
-            XY_grads[1][i] = out_y
-    else:   # func == "rastigrin"
-        for i in range(pop_size):
-            out_x, out_y = rastigrin_grad(XY_coords[0][i], XY_coords[1][i])
-            XY_grads[0][i] = out_x
-            XY_grads[1][i] = out_y
-    return XY_grads
-
-
-def walk_around(networks, XY_coords, pop_size, step_size=1, verbose=False):
-    while step_size > 0:
-        for i in range(pop_size):
-            XY_grads = get_gradients(opt_func, XY_coords)
-
-            NN_coords = networks[i].prop_forward(input_sensors=np.array([XY_grads[0][i], XY_grads[1][i]]))
-            if verbose: print(f"Old coordinates = {XY_coords[0][i]}, {XY_coords[1][i]}")
-            XY_coords[0][i] += NN_coords[0]
-            XY_coords[1][i] += NN_coords[1]
-            if verbose: print(f"New coordinates = {XY_coords[0][i]}, {XY_coords[1][i]}")
-        step_size -= 1
-    return XY_coords
-
-
-def evolution(
-        ann_layers:Tuple[int],
-        bias_nodes:Tuple[bool],
-        pop_size:int = 10,
-        step_size:int = 1,
-        verbose:bool = False):
-    XY_coords = initialise_in_function(opt_func, 10)    # Will be used for animation later
-    # size = helper.get_network_size(ann_layers)
-    population = Population(num_individuals=pop_size, ann_layers=ann_layers, bias_nodes=bias_nodes, fitness_func=rosenbrock)
-    # population = [Individual(0, size) for i in range(population_size)]
-    # networks = [helper.array_to_network(individual.float_genotype, network_layers, bias) for individual in population]
-    # XY_coords = walk_around(networks, XY_coords, population_size, step_size, verbose)
-
 # evolution(ann_layers=(2,12,4,2), bias_nodes=(False,True,True,False), pop_size=10, verbose=False)
-population = Population(num_individuals=50, ann_layers=(2,12,4,2), bias_nodes=(False,True,True,False), fitness_func=neg_rosenbrock)
-population.evolution(num_generations = 50, time_for_generation=5, get_ann_inputs=rosenbrock_grad, width=3, mutation_rate=0.0001)
+population = Population(num_individuals=5, ann_layers=(2,12,4,2), bias_nodes=(False,True,True,False), fitness_func=neg_rosenbrock)
+population.evolution(num_generations = 5, time_for_generation=5, get_ann_inputs=rosenbrock_grad, width=3, mutation_rate=0.0001)
 fig = population._history.plot_fitness()
+anim = population._history.animate_positions()
+
+# def initialise_in_function(func:str = "rosenbrock", population_size:int = 10):
+#     if func == "rosenbrock":
+#         XY = np.random.rand(2, population_size) * 4
+#         XY[0] = XY[0] - 2  # Change range of particles on X-axis to be between -2 and 2
+#         XY[1] = XY[1] - 1  # Change range of particles on Y-axis to be between -1 and 3
+#         # print(f"INIT = {XY[0]}, {XY[1]}")
+#         return XY
+#     else:    # func == "rastigrin"
+#         XY = np.random.rand(2, population_size) * 10
+#         XY = XY - 5  # Change range of particles on X-axis and Y-axis to be between -5 and 5
+#         return XY
+#
+# def get_gradients(func, XY_coords, pop_size=10):
+#     XY_grads = np.full_like(XY_coords, 1)
+#     if func =="rosenbrock":
+#         for i in range(pop_size):
+#             out_x, out_y = rosenbrock_grad(XY_coords[0][i], XY_coords[1][i])
+#             XY_grads[0][i] = out_x
+#             XY_grads[1][i] = out_y
+#     else:   # func == "rastigrin"
+#         for i in range(pop_size):
+#             out_x, out_y = rastigrin_grad(XY_coords[0][i], XY_coords[1][i])
+#             XY_grads[0][i] = out_x
+#             XY_grads[1][i] = out_y
+#     return XY_grads
+#
+#
+# def walk_around(networks, XY_coords, pop_size, step_size=1, verbose=False):
+#     while step_size > 0:
+#         for i in range(pop_size):
+#             XY_grads = get_gradients(opt_func, XY_coords)
+#
+#             NN_coords = networks[i].prop_forward(input_sensors=np.array([XY_grads[0][i], XY_grads[1][i]]))
+#             if verbose: print(f"Old coordinates = {XY_coords[0][i]}, {XY_coords[1][i]}")
+#             XY_coords[0][i] += NN_coords[0]
+#             XY_coords[1][i] += NN_coords[1]
+#             if verbose: print(f"New coordinates = {XY_coords[0][i]}, {XY_coords[1][i]}")
+#         step_size -= 1
+#     return XY_coords
+
+
+# def evolution(
+#         ann_layers:Tuple[int],
+#         bias_nodes:Tuple[bool],
+#         pop_size:int = 10,
+#         step_size:int = 1,
+#         verbose:bool = False):
+#     XY_coords = initialise_in_function(opt_func, 10)    # Will be used for animation later
+#     # size = helper.get_network_size(ann_layers)
+#     population = Population(num_individuals=pop_size, ann_layers=ann_layers, bias_nodes=bias_nodes, fitness_func=rosenbrock)
+#     # population = [Individual(0, size) for i in range(population_size)]
+#     # networks = [helper.array_to_network(individual.float_genotype, network_layers, bias) for individual in population]
+#     # XY_coords = walk_around(networks, XY_coords, population_size, step_size, verbose)
+
+
 
 # VALUES ARE SET DEPENDENT ON CHOSEN FUNCTION
 # Set values of variables for algorithm and plot for optimising Rosenbrock algorithm

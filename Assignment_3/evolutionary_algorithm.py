@@ -5,6 +5,7 @@ import helper
 import struct
 from typing import Tuple, List
 import tqdm
+from animation import *
 
 # https://stackoverflow.com/questions/8751653/how-to-convert-a-binary-string-into-a-float-value?noredirect=1&lq=1
 
@@ -17,7 +18,7 @@ class History():
     def __init__(self) -> None:
         self._num_generations = 0
         self._positions = [] # each list element stores the positions of all individuals of a generation
-        self._fitness = [] # each listelement stores the fitness of all individuals of a generation
+        self._fitness = [] # each list element stores the fitness of all individuals of a generation
         self._avg_fitness = None
         self._sd_avg_fitness = None # standard deviation of average
         self._fitness_best = None # negative infinity
@@ -56,6 +57,13 @@ class History():
                 self._genotype_historic_best = np.array([genotypes[index_fittest]])                
             else: self._genotype_historic_best = np.append(self._genotype_historic_best, genotypes[index_fittest])
 
+    def animate_positions(self):
+        # print(self._positions)
+        print(len(self._positions))
+        for i in range(len(self._positions)):
+            print("testprint")
+            position_animation = Animation("neg_rosenbrock", self._positions[i], title=f"generation_{i}")
+            anim = position_animation.animate()
 
     def plot_fitness(self):
         assert self._avg_fitness.ndim == 1, 'Behaviour for multi-dimensional averages not defined.'
@@ -99,7 +107,7 @@ class Population():
 
         Args:
             positions (np.ndarray): Multi-dimensional array of coordinates of each individual. In case of 2D, row 1 should have x-coordinates
-                                    and row 2 should have y-coordiantes.
+                                    and row 2 should have y-coordinates.
         """        
 
         assert positions.shape == (self._fit_func_dim, self._size), 'Dimensions of positions do not match fitness function dimensions and population size'
@@ -129,6 +137,8 @@ class Population():
         XY = np.random.rand(self._fit_func_dim, self._size) * width
         center_shift = np.array([np.ones(self._size)*c for c in center])
         XY = np.add(XY, center_shift)
+        XY[0] = XY[0] - 2   #currently hardcoded for Rosenbrock
+        XY[1] = XY[1] - 1
         return XY
 
 
@@ -149,6 +159,10 @@ class Population():
         Returns:
             np.ndarray: final positions of all individuals
         """
+        if max_velocity is None:
+            max_velocity = np.ones(self._fit_func_dim)
+        assert max_velocity.ndim == 1, 'multi-dimensional max_velocity array not compatible. Needs to be 1-D array.'
+        assert max_velocity.shape[0] == self._fit_func_dim, 'dimension of max_velocity does not match dimension of fitness_func'
 
         if max_velocity is None:
             max_velocity = np.ones(self._fit_func_dim)
@@ -159,16 +173,17 @@ class Population():
         pos = self.initial_positions(center, width)
         pos_history = [pos]
 
-        for step in range(int(time/update_rate)):
+        for step in range(int(time / update_rate)):
             for i in range(self._size):
                 inputs = get_ann_inputs(pos[0][i], pos[1][i])
                 velocity = networks[i].prop_forward(inputs)
                 velocity_capped = np.clip(velocity, a_min = max_velocity[0], a_max=max_velocity[1])
-                pos[0][i] += update_rate*velocity[0]
-                pos[1][i] += update_rate*velocity[1]
+                velocity_capped = np.clip(velocity, a_min=max_velocity[0], a_max=max_velocity[1])
+                pos[0][i] += update_rate * velocity[0]
+                pos[1][i] += update_rate * velocity[1]
                 pos_history.append(pos)
             # TO-DO: store positions in history to plot movements
-        
+
         self.update_fitness(pos)
         return pos_history
 
