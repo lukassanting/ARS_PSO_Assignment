@@ -24,7 +24,8 @@ class History():
         self._genotypes_best = None
 
 
-    def add_generation_to_history(self, population) -> None:
+    def add_generation_to_history(self, population, pos) -> None:
+        self._positions.append(pos)
         fitness_values = population.get_all_fitness()
         self._fitness.append(fitness_values)
         self.fittest_in_new_generation(population.get_all_genotypes_float())
@@ -208,9 +209,9 @@ class Population():
             center (np.ndarray, optional): see description of initial_position. Defaults to None.
             width (float, optional): see description of initial_position. Defaults to 1.
         """
-        for i in range(num_generations):
-            self.lifecycle(time_for_generation, get_ann_inputs, update_rate, center, width)
-            self._history.add_generation_to_history(self)
+        for i in tqdm.trange(num_generations):
+            pos = self.lifecycle(time_for_generation, get_ann_inputs, update_rate, center, width)
+            self._history.add_generation_to_history(self, pos)
             self.generational_change(mutation_rate, verbose)
 
             
