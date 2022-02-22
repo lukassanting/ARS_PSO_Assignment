@@ -1,8 +1,9 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from sqlalchemy import func
 import helper
 import struct
-from typing import Tuple
+from typing import Tuple, List
 
 # https://stackoverflow.com/questions/8751653/how-to-convert-a-binary-string-into-a-float-value?noredirect=1&lq=1
 
@@ -16,16 +17,52 @@ class History():
         self._num_generations = 0
         self._positions = [] # each list element stores the positions of all individuals of a generation
         self._fitness = [] # each listelement stores the fitness of all individuals of a generation
-        self._genotype_fittest = None
+        self._avg_fitness = None
+        self._sd_avg_fitness = None # standard deviation of average
+        self._fitness_best = None # negative infinity
+        self._genotypes_best = None
 
-    def fittest_in_new_generationse(self, individuals):
-        fitness = get_all_fitness(individuals)
-        index_fittest = np.where(fitness == np.amax(fitness))
-        pass
 
-    # TO-DO: implement function that finds the individual with the highest fitness over all generations
+    def add_generation_to_history(self, population) -> None:
+        fitness_values = population.get_all_fitness()
+        self._fitness.append(fitness_values)
+        self.fittest_in_new_generation(population.get_all_genotypes_float())
 
-    pass
+        if self._avg_fitness is None:
+            self._avg_fitness = np.mean(fitness_values)
+        else: self._avg_fitness.append(np.mean(fitness_values))
+
+        if self._sd_avg_fitness is None:
+            self._sd_avg_fitness = np.std(fitness_values)
+        else: self._sd_avg_fitness.append(np.std(fitness_values))
+
+
+    def fittest_in_new_generation(self, genotypes) -> None:
+        # requires the fitness of the new generation to be stored as the last element in self._fitness
+        # if multiple individuals have the highest fitness in a population, only the first one is kept
+        index_fittest = np.argmax(self._fitness[-1])
+
+        if self._fitness[-1][index_fittest] > np.max(self._fitness_best):
+            if self._genotype_historic_best is None:
+                self._genotype_historic_best = np.array([genotypes[index_fittest]])                
+            else: self._genotype_historic_best = np.append(self._genotype_historic_best, genotypes[index_fittest])
+
+        if self._fitness_best is None:
+            self._fitness_best = np.array([self._fitness[-1][index_fittest]])
+        else: 
+            self._fitness_best = np.append(self._fitness_best, self._fitness[-1][index_fittest])
+
+
+    def plot_fitness(self):
+        assert self._avg_fitness.ndim == 1, 'Behaviour for multi-dimensional averages not defined.'
+        assert self._fitness_best.ndim == 1, 'Behavior for multi-dimensional fitness values not defined.'
+
+        fig = plt.figure()
+        plt.errorbar(range(self._avg_fitness.shape[0]), self._avg_fitness, self._sd_avg_fitness)
+        plt.errorbar(range(self._fitness_best.shape[0]), self._fitness_best)
+        plt.legend(loc='lower right')
+
+
 
 class Population():
 
@@ -36,14 +73,19 @@ class Population():
         self._fit_func = fitness_func
         self._fit_func_dim = self._fit_func.__code__.co_argcount-len(self._fit_func.__defaults__)
         self._indiv_gene_length = helper.get_network_size(self._layers)
-        self._individuals = [Individual(0, self._indiv_gene_length) for i in range(self._size)]
+        self._individuals = np.array([Individual(0, self._indiv_gene_length) for i in range(self._size)])
+        self._history = History()
 
 
     def get_all_fitness(self) -> np.ndarray:
         ''' returns an array with all fitness values of the individuals '''
-    
         fitness = np.array([ind.fitness for ind in self._individuals])
         return fitness
+
+    
+    def get_all_genotypes_float(self) -> np.ndarray:
+        genotypes = np.array([ind.float_genotype for ind in self._individuals])
+        return genotypes
 
 
     def update_fitness(self, positions: np.ndarray) -> None:
@@ -57,7 +99,7 @@ class Population():
         assert positions.shape == (self._fit_func_dim, self._size), 'Dimensions of positions do not match fitness function dimensions and population size'
 
         for indiv_number, individual in enumerate(self._individuals):
-            coordinates = [positions[dim][indiv_number] for dim in enumerate(self._fit_func_dim)]
+            coordinates = [positions[dim][indiv_number] for dim in range(self._fit_func_dim)]
             individual.update_fitness(self._fit_func(*coordinates))
 
 
@@ -84,7 +126,7 @@ class Population():
         return XY
 
 
-    def lifecycle(self, time:int, get_ann_inputs:func, update_rate:float=1/50, center:np.ndarray=None, width:float=1):
+    def lifecycle(self, time:int, get_ann_inputs:func, update_rate:float=1/50, center:np.ndarray=None, width:float=1) -> np.ndarray:
         """Initializes ANNs according to Genotypes of the individuals and let the individuals move. After a set number of
         iterations, the fitness of every individual is updated.
 
@@ -97,6 +139,9 @@ class Population():
             update_rate (float, optional): needs to be 1/XX where XX is an integer. Defaults to 1/50.
             center (np.ndarray, optional): see description of initial_position. Defaults to None.
             width (float, optional): see description of initial_position. Defaults to 1.
+
+        Returns:
+            np.ndarray: final positions of all individuals
         """
 
         networks = [helper.array_to_network(individual.float_genotype, self._layers, self._bias) for individual in self._individuals]
@@ -110,18 +155,46 @@ class Population():
                 pos[1][i] += update_rate*velocity[1]
             # TO-DO: store positions in history to plot movements
         
-        self._eval_fitness(pos)
+        self.update_fitness(pos)
+        return pos
 
 
-    def generational_change(self) -> None:
-        pass
-        # do selection
-        # do reproduction/crossover
-        # do mutation
-        # replace current population with population of the next time step
+    def generational_change(self, verbose=False) -> None:
+        '''
+            Performs all the genetic processes.
+        '''
+        
+        # Selection
+        if verbose: print("Applying selection...")
+        selected_individuals = list(set(linear_rank_selection(self._individuals)))
+        if verbose: print("Selected {} out of {} initial individuals".format(len(selected_individuals), self._individuals))
+
+        # Reproduction/crossover
+
+        needed = len(self._individuals) - len(selected_individuals)
+        
+        offsprings = []
+        for child in range(needed):
+            # randomly choose two parents for the reproduction
+            p1_i, p2_i = np.random.choice(range(0, len(selected_individuals)), 2, replace=False)
+            children = N_point_crossover(selected_individuals[p1_i], selected_individuals[p2_i], 1)
+            
+            # discard one child >:)
+            selected_child = children[np.random.randint(0, 1)]
+            offsprings.append(selected_child)
+        
+        new_population = selected_individuals + offsprings
+        
+        for ind in new_population:
+            ind = bit_string_mutation(ind)
+
+        print(len(new_population))
+        
+        self._individuals = new_population
+
 
     def evolution(self, num_generations:int, time_for_generation:int, get_ann_inputs:func, update_rate:float,
-                        center:np.ndarray=None, width:float=1) -> None:
+                        center:np.ndarray=None, width:float=1, verbose=False) -> None:
         """Performs the entire evolutionary algorithm.
 
         Args:
@@ -134,7 +207,8 @@ class Population():
         """
         for i in range(num_generations):
             self.lifecycle(time_for_generation, get_ann_inputs, update_rate, center, width)
-            self.generational_change()
+            self._history.add_generation_to_history(self)
+            self.generational_change(verbose)
 
             
 
@@ -313,7 +387,7 @@ def N_point_crossover(parent1: Individual, parent2: Individual, nr_points: int) 
 
 # https://en.wikipedia.org/wiki/Mutation_(genetic_algorithm)
 
-def bit_string_mutation(individual: Individual, mutation_rate=0.05) -> str:
+def bit_string_mutation(individual: Individual, mutation_rate=0.001) -> Individual:
 
     '''
         Bit flips of the individual genome according on the mutation rate (probability)
