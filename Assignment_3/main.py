@@ -95,9 +95,10 @@ def evolution(
     # XY_coords = walk_around(networks, XY_coords, population_size, step_size, verbose)
 
 # evolution(ann_layers=(2,12,4,2), bias_nodes=(False,True,True,False), pop_size=10, verbose=False)
-population = Population(num_individuals=50, ann_layers=(2,12,4,2), bias_nodes=(False,True,True,False), fitness_func=neg_rosenbrock)
-population.evolution(num_generations = 50, time_for_generation=5, get_ann_inputs=rosenbrock_grad, width=3, mutation_rate=0.0001)
+population = Population(num_individuals=8, ann_layers=(2,12,8,2), bias_nodes=(False,True,True,False), fitness_func=neg_rosenbrock)
+population.evolution(num_generations=3, time_for_generation=40, get_ann_inputs=rosenbrock_grad, width=1, mutation_rate=0.0001)
 fig = population._history.plot_fitness()
+plt.show()
 
 # VALUES ARE SET DEPENDENT ON CHOSEN FUNCTION
 # Set values of variables for algorithm and plot for optimising Rosenbrock algorithm

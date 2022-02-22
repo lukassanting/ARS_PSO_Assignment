@@ -16,56 +16,47 @@ class History():
 
     def __init__(self) -> None:
         self._num_generations = 0
-        self._positions = [] # each list element stores the positions of all individuals of a generation
-        self._fitness = [] # each listelement stores the fitness of all individuals of a generation
-        self._avg_fitness = None
-        self._sd_avg_fitness = None # standard deviation of average
-        self._fitness_best = None # negative infinity
+        self._positions = None # each list element stores the positions of all individuals of a generation
+        self._fitness = None # each listelement stores the fitness of all individuals of a generation
+        self._avg_fitness = []
+        self._sd_avg_fitness = [] # standard deviation of average
+        self._fitness_best = []
         self._genotypes_best = None
 
 
     def add_generation_to_history(self, population, pos) -> None:
-        self._positions.append(pos)
+        if self._positions is None:
+            self._positions = np.array([pos])
+        else: self._positions = np.concatenate((self._positions, np.array([pos])), axis=0)
+
         fitness_values = population.get_all_fitness()
-        self._fitness.append(fitness_values)
-        self.fittest_in_new_generation(population.get_all_genotypes_float())
+        if self._fitness is None:
+            self._fitness = np.array([fitness_values])
+        else: self._fitness = np.concatenate((self._fitness, np.array([fitness_values])), axis=0)
 
-        if self._avg_fitness is None:
-            self._avg_fitness = np.mean(fitness_values)
-        else: 
-            self._avg_fitness = np.append(self._avg_fitness, np.mean(fitness_values))
+        self.store_best_in_generation(population.get_all_genotypes_float())
 
-        if self._sd_avg_fitness is None:
-            self._sd_avg_fitness = np.std(fitness_values)
-        else: 
-            self._sd_avg_fitness = np.append(self._sd_avg_fitness, np.std(fitness_values))
+        self._avg_fitness.append(np.mean(fitness_values))
+        self._sd_avg_fitness.append(np.std(fitness_values))
 
 
-    def fittest_in_new_generation(self, genotypes) -> None:
+    def store_best_in_generation(self, genotypes) -> None:
         # requires the fitness of the new generation to be stored as the last element in self._fitness
         # if multiple individuals have the highest fitness in a population, only the first one is kept
         index_fittest = np.argmax(self._fitness[-1])
+        self._fitness_best.append(self._fitness[-1][index_fittest])
 
-        if self._fitness_best is None:
-            self._fitness_best = np.array([self._fitness[-1][index_fittest]])
-        else: 
-            self._fitness_best = np.append(self._fitness_best, self._fitness[-1][index_fittest])
-
-        if self._fitness[-1][index_fittest] > np.max(self._fitness_best):
+        if self._fitness[-1][index_fittest] > np.max(np.array(self._fitness_best)):
             if self._genotype_historic_best is None:
                 self._genotype_historic_best = np.array([genotypes[index_fittest]])                
-            else: self._genotype_historic_best = np.append(self._genotype_historic_best, genotypes[index_fittest])
+            else: self._genotype_historic_best = np.concatenate((self._genotype_historic_best, np.array([genotypes[index_fittest]])), axis=0)
 
 
     def plot_fitness(self):
-        assert self._avg_fitness.ndim == 1, 'Behaviour for multi-dimensional averages not defined.'
-        assert self._fitness_best.ndim == 1, 'Behavior for multi-dimensional fitness values not defined.'
-
         fig = plt.figure()
-        plt.errorbar(range(self._avg_fitness.shape[0]), self._avg_fitness, self._sd_avg_fitness)
-        plt.errorbar(range(self._fitness_best.shape[0]), self._fitness_best)
+        plt.errorbar(range(len(self._avg_fitness)), self._avg_fitness, self._sd_avg_fitness)
+        plt.errorbar(range(len(self._fitness_best)), self._fitness_best)
         # plt.legend(loc='lower right')
-        plt.show()
         return fig
 
 
@@ -127,8 +118,10 @@ class Population():
         assert center.shape[0] == self._fit_func_dim, 'Number of dimensions does not match dimensionality of center for the uniform distribution'
 
         XY = np.random.rand(self._fit_func_dim, self._size) * width
+        # print(f'initial coordinates matrix {XY}') (works)
         center_shift = np.array([np.ones(self._size)*c for c in center])
         XY = np.add(XY, center_shift)
+        # print(f'coordinate matrix after applying shift {XY}') (works)
         return XY
 
 
@@ -151,26 +144,26 @@ class Population():
         """
 
         if max_velocity is None:
-            max_velocity = np.ones(self._fit_func_dim)
-        assert max_velocity.ndim == 1, 'multi-dimensional max_velocity array not compatible. Needs to be 1-D array.'
-        assert max_velocity.shape[0] == self._fit_func_dim, 'dimension of max_velocity does not match dimension of fitness_func'
+            max_velocity = (-1, 1)
+        #assert max_velocity.ndim == 1, 'multi-dimensional max_velocity array not compatible. Needs to be 1-D array.'
+        #assert max_velocity.shape[0] == self._fit_func_dim, 'dimension of max_velocity does not match dimension of fitness_func'
 
         networks = [helper.array_to_network(individual.float_genotype, self._layers, self._bias) for individual in self._individuals]
         pos = self.initial_positions(center, width)
-        pos_history = [pos]
+        pos_generation = np.array([pos])
 
         for step in range(int(time/update_rate)):
             for i in range(self._size):
                 inputs = get_ann_inputs(pos[0][i], pos[1][i])
                 velocity = networks[i].prop_forward(inputs)
                 velocity_capped = np.clip(velocity, a_min = max_velocity[0], a_max=max_velocity[1])
-                pos[0][i] += update_rate*velocity[0]
-                pos[1][i] += update_rate*velocity[1]
-                pos_history.append(pos)
-            # TO-DO: store positions in history to plot movements
+
+                pos[0][i] += update_rate*velocity_capped[0]
+                pos[1][i] += update_rate*velocity_capped[1]
+            pos_generation = np.concatenate((pos_generation, np.array([pos])), axis=0)
         
         self.update_fitness(pos)
-        return pos_history
+        return pos_generation
 
 
     def generational_change(self, mutation_rate:float=0.001, verbose=False) -> None:
@@ -184,7 +177,6 @@ class Population():
         if verbose: print("Selected {} out of {} initial individuals".format(len(selected_individuals), len(self._individuals)))
 
         # Reproduction/crossover
-
         needed = len(self._individuals) - len(selected_individuals)
         
         offsprings = []
