@@ -44,8 +44,15 @@ class Animation:
         return x, y, z, fig, ax, img, p_current, p_arrows
 
     def animate(self):
-        anim = FuncAnimation(self._fig, self.f_animate, frames=list(range(1, 10)), interval=150, blit=False, repeat=True)
+
+        anim = FuncAnimation(self._fig, self.f_animate, frames=range(len(self._XY)), interval=150, blit=False, repeat=True)
         anim.save("ANIMATION.gif", dpi=120, writer="ffmpeg")
+
+    # def frame_generator(self, XY, hold_count):
+    #     for frame in range(len(XY)):
+    #         for _ in range(hold_count):
+    #             yield None
+    #         yield frame
 
     def f_animate(self, i):
         title = 'Iteration {:02d}'.format(i)
