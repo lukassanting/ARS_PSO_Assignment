@@ -4,6 +4,7 @@ from sqlalchemy import func
 import helper
 import struct
 from typing import Tuple, List
+import tqdm
 
 # https://stackoverflow.com/questions/8751653/how-to-convert-a-binary-string-into-a-float-value?noredirect=1&lq=1
 
@@ -32,7 +33,6 @@ class History():
             self._avg_fitness = np.mean(fitness_values)
         else: 
             self._avg_fitness = np.append(self._avg_fitness, np.mean(fitness_values))
-            print(f'new mean: {np.mean(fitness_values)}, new avg_fitness: {self._avg_fitness}')
 
         if self._sd_avg_fitness is None:
             self._sd_avg_fitness = np.std(fitness_values)
@@ -57,7 +57,6 @@ class History():
 
 
     def plot_fitness(self):
-        print(f'avg fitness: {self._avg_fitness}, type: {type(self._avg_fitness)}')
         assert self._avg_fitness.ndim == 1, 'Behaviour for multi-dimensional averages not defined.'
         assert self._fitness_best.ndim == 1, 'Behavior for multi-dimensional fitness values not defined.'
 
@@ -165,7 +164,7 @@ class Population():
         return pos
 
 
-    def generational_change(self, verbose=False) -> None:
+    def generational_change(self, mutation_rate:float=0.001, verbose=False) -> None:
         '''
             Performs all the genetic processes.
         '''
@@ -192,15 +191,13 @@ class Population():
         new_population = selected_individuals + offsprings
         
         for ind in new_population:
-            ind = bit_string_mutation(ind)
-
-        print(len(new_population))
+            ind = bit_string_mutation(ind, mutation_rate=mutation_rate)
         
         self._individuals = new_population
 
 
     def evolution(self, num_generations:int, time_for_generation:int, get_ann_inputs:func, update_rate:float=1/50,
-                        center:np.ndarray=None, width:float=1, verbose=False) -> None:
+                        center:np.ndarray=None, width:float=1, mutation_rate=0.001, verbose=False) -> None:
         """Performs the entire evolutionary algorithm.
 
         Args:
@@ -214,7 +211,7 @@ class Population():
         for i in range(num_generations):
             self.lifecycle(time_for_generation, get_ann_inputs, update_rate, center, width)
             self._history.add_generation_to_history(self)
-            self.generational_change(verbose)
+            self.generational_change(mutation_rate, verbose)
 
             
 
@@ -357,9 +354,6 @@ def N_point_crossover(parent1: Individual, parent2: Individual, nr_points: int) 
     genotype_parent2 = "".join(parent2._binary_genotype)
 
     crossover_points = np.random.randint(1, min([len(genotype_parent1), len(genotype_parent2)]), nr_points)
-
-    print(f'Performing {nr_points} point crossover on {id(parent1)} and {id(parent2)}')
-    print(f'Crossover points: {crossover_points}')
 
     sliced_parent1, sliced_parent2, prev_point = [], [], 0
 
