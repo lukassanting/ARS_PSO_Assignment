@@ -16,6 +16,9 @@ opt_func = "rosenbrock"  # Set to "rosenbrock" or to "rastigrin"
 def rosenbrock(x, y, a=0, b=150):
     return ((a - x) ** 2) + b * ((y - (x ** 2)) ** 2)
 
+def neg_rosenbrock(x, y, a=0, b=150):
+    return (-1)*((a - x) ** 2) + b * ((y - (x ** 2)) ** 2)
+
 
 def rosenbrock_grad(x, y, a=1, b=150):
     return [(2 * (x - a) - 4 * b * x * (y - (x ** 2))), (2 * b * (y - (x ** 2)))]
@@ -92,8 +95,8 @@ def evolution(
     # XY_coords = walk_around(networks, XY_coords, population_size, step_size, verbose)
 
 # evolution(ann_layers=(2,12,4,2), bias_nodes=(False,True,True,False), pop_size=10, verbose=False)
-population = Population(num_individuals=10, ann_layers=(2,12,4,2), bias_nodes=(False,True,True,False), fitness_func=rosenbrock)
-population.evolution(num_generations = 5, time_for_generation=5, get_ann_inputs=rosenbrock_grad)
+population = Population(num_individuals=50, ann_layers=(2,12,4,2), bias_nodes=(False,True,True,False), fitness_func=neg_rosenbrock)
+population.evolution(num_generations = 50, time_for_generation=5, get_ann_inputs=rosenbrock_grad, width=3, mutation_rate=0.0001)
 fig = population._history.plot_fitness()
 
 # VALUES ARE SET DEPENDENT ON CHOSEN FUNCTION

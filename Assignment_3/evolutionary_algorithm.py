@@ -132,7 +132,7 @@ class Population():
         return XY
 
 
-    def lifecycle(self, time:int, get_ann_inputs:func, update_rate:float=1/50, center:np.ndarray=None, width:float=1) -> np.ndarray:
+    def lifecycle(self, time:int, get_ann_inputs:func, update_rate:float=1/50, center:np.ndarray=None, width:float=1, max_velocity=None) -> np.ndarray:
         """Initializes ANNs according to Genotypes of the individuals and let the individuals move. After a set number of
         iterations, the fitness of every individual is updated.
 
@@ -150,19 +150,27 @@ class Population():
             np.ndarray: final positions of all individuals
         """
 
+        if max_velocity is None:
+            max_velocity = np.ones(self._fit_func_dim)
+        assert max_velocity.ndim == 1, 'multi-dimensional max_velocity array not compatible. Needs to be 1-D array.'
+        assert max_velocity.shape[0] == self._fit_func_dim, 'dimension of max_velocity does not match dimension of fitness_func'
+
         networks = [helper.array_to_network(individual.float_genotype, self._layers, self._bias) for individual in self._individuals]
         pos = self.initial_positions(center, width)
+        pos_history = [pos]
 
         for step in range(int(time/update_rate)):
             for i in range(self._size):
                 inputs = get_ann_inputs(pos[0][i], pos[1][i])
                 velocity = networks[i].prop_forward(inputs)
+                velocity_capped = np.clip(velocity, a_min = max_velocity[0], a_max=max_velocity[1])
                 pos[0][i] += update_rate*velocity[0]
                 pos[1][i] += update_rate*velocity[1]
+                pos_history.append(pos)
             # TO-DO: store positions in history to plot movements
         
         self.update_fitness(pos)
-        return pos
+        return pos_history
 
 
     def generational_change(self, mutation_rate:float=0.001, verbose=False) -> None:
@@ -210,8 +218,8 @@ class Population():
             width (float, optional): see description of initial_position. Defaults to 1.
         """
         for i in tqdm.trange(num_generations):
-            pos = self.lifecycle(time_for_generation, get_ann_inputs, update_rate, center, width)
-            self._history.add_generation_to_history(self, pos)
+            pos_history = self.lifecycle(time_for_generation, get_ann_inputs, update_rate, center, width)
+            self._history.add_generation_to_history(self, pos_history)
             self.generational_change(mutation_rate, verbose)
 
             
