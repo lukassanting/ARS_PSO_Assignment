@@ -5,10 +5,11 @@ from matplotlib.animation import FuncAnimation
 
 
 class Animation:
-    def __init__(self, opt_func, XY, V=None):
+    def __init__(self, opt_func, XY, title="", V=None):
         self.opt_func = opt_func
         self._XY = XY
         self._V = V
+        self._title = title
         self._f, self._plot_xlow, self._plot_xhigh, self._plot_ylow, self._plot_yhigh = self.get_plot_vals()
         self._x, self._y, self._z, self._fig, self._ax, self._img, self._pcurrent, self._parrows = self.setup_plot()
 
@@ -46,7 +47,7 @@ class Animation:
     def animate(self):
 
         anim = FuncAnimation(self._fig, self.f_animate, frames=range(len(self._XY)), interval=150, blit=False, repeat=True)
-        anim.save("ANIMATION.gif", dpi=120, writer="ffmpeg")
+        anim.save(f"ANIMATION_{self._title}.gif", dpi=120, writer="ffmpeg")
 
     # def frame_generator(self, XY, hold_count):
     #     for frame in range(len(XY)):
