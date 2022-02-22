@@ -30,11 +30,14 @@ class History():
 
         if self._avg_fitness is None:
             self._avg_fitness = np.mean(fitness_values)
-        else: self._avg_fitness.append(np.mean(fitness_values))
+        else: 
+            self._avg_fitness = np.append(self._avg_fitness, np.mean(fitness_values))
+            print(f'new mean: {np.mean(fitness_values)}, new avg_fitness: {self._avg_fitness}')
 
         if self._sd_avg_fitness is None:
             self._sd_avg_fitness = np.std(fitness_values)
-        else: self._sd_avg_fitness.append(np.std(fitness_values))
+        else: 
+            self._sd_avg_fitness = np.append(self._sd_avg_fitness, np.std(fitness_values))
 
 
     def fittest_in_new_generation(self, genotypes) -> None:
@@ -42,25 +45,28 @@ class History():
         # if multiple individuals have the highest fitness in a population, only the first one is kept
         index_fittest = np.argmax(self._fitness[-1])
 
-        if self._fitness[-1][index_fittest] > np.max(self._fitness_best):
-            if self._genotype_historic_best is None:
-                self._genotype_historic_best = np.array([genotypes[index_fittest]])                
-            else: self._genotype_historic_best = np.append(self._genotype_historic_best, genotypes[index_fittest])
-
         if self._fitness_best is None:
             self._fitness_best = np.array([self._fitness[-1][index_fittest]])
         else: 
             self._fitness_best = np.append(self._fitness_best, self._fitness[-1][index_fittest])
 
+        if self._fitness[-1][index_fittest] > np.max(self._fitness_best):
+            if self._genotype_historic_best is None:
+                self._genotype_historic_best = np.array([genotypes[index_fittest]])                
+            else: self._genotype_historic_best = np.append(self._genotype_historic_best, genotypes[index_fittest])
+
 
     def plot_fitness(self):
+        print(f'avg fitness: {self._avg_fitness}, type: {type(self._avg_fitness)}')
         assert self._avg_fitness.ndim == 1, 'Behaviour for multi-dimensional averages not defined.'
         assert self._fitness_best.ndim == 1, 'Behavior for multi-dimensional fitness values not defined.'
 
         fig = plt.figure()
         plt.errorbar(range(self._avg_fitness.shape[0]), self._avg_fitness, self._sd_avg_fitness)
         plt.errorbar(range(self._fitness_best.shape[0]), self._fitness_best)
-        plt.legend(loc='lower right')
+        # plt.legend(loc='lower right')
+        plt.show()
+        return fig
 
 
 
@@ -167,7 +173,7 @@ class Population():
         # Selection
         if verbose: print("Applying selection...")
         selected_individuals = list(set(linear_rank_selection(self._individuals)))
-        if verbose: print("Selected {} out of {} initial individuals".format(len(selected_individuals), self._individuals))
+        if verbose: print("Selected {} out of {} initial individuals".format(len(selected_individuals), len(self._individuals)))
 
         # Reproduction/crossover
 
@@ -193,7 +199,7 @@ class Population():
         self._individuals = new_population
 
 
-    def evolution(self, num_generations:int, time_for_generation:int, get_ann_inputs:func, update_rate:float,
+    def evolution(self, num_generations:int, time_for_generation:int, get_ann_inputs:func, update_rate:float=1/50,
                         center:np.ndarray=None, width:float=1, verbose=False) -> None:
         """Performs the entire evolutionary algorithm.
 
@@ -214,16 +220,15 @@ class Population():
 
 class Individual():
     
-    def __init__(self, fitness=0, size=92, from_genes=False, bin_genes=[]) -> None:
+    def __init__(self, fitness=0, size=92, bin_genes=None) -> None:
         self._float_genotype = np.random.uniform(size=size)
         self._binary_genotype = helper.array_to_binary(self._float_genotype)
         self._fitness = fitness
         self._nr_genes = size
 
         # if the list of genes is foreknown construct the individual from them
-        if from_genes:
+        if bin_genes is not None:
             self._binary_genotype = bin_genes
-            print(bin_genes)
             self._float_genotype = helper.array_to_float(self._binary_genotype)
 
     def __str__(self) -> str:
@@ -378,8 +383,8 @@ def N_point_crossover(parent1: Individual, parent2: Individual, nr_points: int) 
             child1 += sliced_parent2[i]
             child2 += sliced_parent1[i]
 
-    child1 = Individual(from_genes=True, bin_genes=genotype_to_genes(child1, 32))
-    child2 = Individual(from_genes=True, bin_genes=genotype_to_genes(child2, 32))
+    child1 = Individual(bin_genes=genotype_to_genes(child1, 32))
+    child2 = Individual(bin_genes=genotype_to_genes(child2, 32))
 
     return (child1, child2)
 
@@ -402,7 +407,7 @@ def bit_string_mutation(individual: Individual, mutation_rate=0.001) -> Individu
         else:
             mutated_individual += dna[i]
 
-    mutated_individual = Individual(from_genes=True, bin_genes=genotype_to_genes(mutated_individual, 32))
+    mutated_individual = Individual(bin_genes=genotype_to_genes(mutated_individual, 32))
 
     return mutated_individual
 
