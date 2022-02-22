@@ -5,6 +5,7 @@ import helper
 import struct
 from typing import Tuple, List
 import tqdm
+from animation import *
 
 # https://stackoverflow.com/questions/8751653/how-to-convert-a-binary-string-into-a-float-value?noredirect=1&lq=1
 
@@ -51,6 +52,13 @@ class History():
                 self._genotype_historic_best = np.array([genotypes[index_fittest]])                
             else: self._genotype_historic_best = np.concatenate((self._genotype_historic_best, np.array([genotypes[index_fittest]])), axis=0)
 
+    def animate_positions(self):
+        # print(self._positions)
+        print(len(self._positions))
+        for i in range(len(self._positions)):
+            print("testprint")
+            position_animation = Animation("neg_rosenbrock", self._positions[i], title=f"generation_{i}")
+            anim = position_animation.animate()
 
     def plot_fitness(self):
         fig = plt.figure()
@@ -90,7 +98,7 @@ class Population():
 
         Args:
             positions (np.ndarray): Multi-dimensional array of coordinates of each individual. In case of 2D, row 1 should have x-coordinates
-                                    and row 2 should have y-coordiantes.
+                                    and row 2 should have y-coordinates.
         """        
 
         assert positions.shape == (self._fit_func_dim, self._size), 'Dimensions of positions do not match fitness function dimensions and population size'
@@ -142,6 +150,10 @@ class Population():
         Returns:
             np.ndarray: final positions of all individuals
         """
+        if max_velocity is None:
+            max_velocity = np.ones(self._fit_func_dim)
+        assert max_velocity.ndim == 1, 'multi-dimensional max_velocity array not compatible. Needs to be 1-D array.'
+        assert max_velocity.shape[0] == self._fit_func_dim, 'dimension of max_velocity does not match dimension of fitness_func'
 
         if max_velocity is None:
             max_velocity = (-1, 1)
@@ -152,7 +164,7 @@ class Population():
         pos = self.initial_positions(center, width)
         pos_generation = np.array([pos])
 
-        for step in range(int(time/update_rate)):
+        for step in range(int(time / update_rate)):
             for i in range(self._size):
                 inputs = get_ann_inputs(pos[0][i], pos[1][i])
                 velocity = networks[i].prop_forward(inputs)

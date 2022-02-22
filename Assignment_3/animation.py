@@ -14,6 +14,8 @@ class Animation:
         self._x, self._y, self._z, self._fig, self._ax, self._img, self._pcurrent, self._parrows = self.setup_plot()
 
     def get_plot_vals(self):
+        if self.opt_func == "neg_rosenbrock":
+            return self.neg_rosenbrock, -2, 2, -1, 3
         if self.opt_func == "rosenbrock":
             return self.rosenbrock, -2, 2, -1, 3
         else:    # self.opt_func === rastrigin
@@ -37,7 +39,7 @@ class Animation:
         ax.plot([x_min], [y_min], marker='x', markersize=5, color="black")          # global minimum shown as 'x'
         p_current = ax.scatter(XY[0][0], XY[0][1], marker='o', color="blue")                # current particle locations
         if V is not None:
-            p_arrows = ax.quiver(XY[0][0], XY[0][1], V[0][0], V[0][1], color='blue', width=0.005)     # vectors of particles
+            p_arrows = ax.quiver(XY[0], XY[1], V[0], V[1], color='blue', width=0.005)     # vectors of particles
         else: p_arrows = None
 
         ax.set_xlim([self._plot_xlow, self._plot_xhigh])
@@ -45,15 +47,8 @@ class Animation:
         return x, y, z, fig, ax, img, p_current, p_arrows
 
     def animate(self):
-
         anim = FuncAnimation(self._fig, self.f_animate, frames=range(len(self._XY)), interval=150, blit=False, repeat=True)
         anim.save(f"ANIMATION_{self._title}.gif", dpi=120, writer="ffmpeg")
-
-    # def frame_generator(self, XY, hold_count):
-    #     for frame in range(len(XY)):
-    #         for _ in range(hold_count):
-    #             yield None
-    #         yield frame
 
     def f_animate(self, i):
         title = 'Iteration {:02d}'.format(i)
@@ -61,11 +56,14 @@ class Animation:
         XY = self._XY
         V = self._V
 
-        self._pcurrent.set_offsets(XY[i])
+        self._pcurrent.set_offsets(XY[i].T)
         if V is not None:
-            self._parrows.set_offsets(XY[i])
-            self._parrows.set_UVC(V[i][0], V[i][1])
+            self._parrows.set_offsets(XY[i].T)
+            self._parrows.set_UVC(V[0], V[1])
         return self._ax, self._pcurrent#, self._parrows
+
+    def neg_rosenbrock(self, x, y, a=0, b=150):
+        return (-1) * ((a - x) ** 2) + b * ((y - (x ** 2)) ** 2)
 
     def rosenbrock(self, x, y, a=0, b=150):
         return ((a - x) ** 2) + b * ((y - (x ** 2)) ** 2)
@@ -76,7 +74,7 @@ class Animation:
 
 # # TESTING CODE
 # n_particles=20
-# XY = np.random.rand(n_particles, 2) * 4
+# XY = np.random.rand(2, n_particles) * 4
 # XY[0] = XY[0] - 2  # Change range of particles on X-axis to be between -2 and 2
 # XY[1] = XY[1] - 1  # Change range of particles on Y-axis to be between -1 and 3
 # V = np.random.randn(n_particles,2) * 0.1
