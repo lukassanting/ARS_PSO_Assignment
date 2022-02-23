@@ -185,7 +185,12 @@ class Population():
         
         # Selection
         if verbose: print("Applying selection...")
+        
         selected_individuals = list(set(linear_rank_selection(self._individuals)))
+        # make sure at least 2 individuals are selected
+        while len(selected_individuals) < 2:
+            selected_individuals = list(set(linear_rank_selection(self._individuals)))
+
         if verbose: print("Selected {} out of {} initial individuals".format(len(selected_individuals), len(self._individuals)))
 
         # Reproduction/crossover
