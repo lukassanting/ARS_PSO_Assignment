@@ -56,12 +56,23 @@ class History():
                 self._genotype_historic_best = np.array([genotypes[index_fittest]])                
             else: self._genotype_historic_best = np.concatenate((self._genotype_historic_best, np.array([genotypes[index_fittest]])), axis=0)
 
+
+
     def animate_positions(self):
-        # print(self._positions)
-        print(len(self._positions))
-        print("testprint")
-        position_animation = Animation("rosenbrock", self._positions[-1], title="last generation")
+    # position_animation = Animation("neg_rosenbrock", self._positions[1], title="generation_1")
+    # anim = position_animation.animate()
+        print(f"len(self._positions) = {len(self._positions)}")
+        print(f"len(self._positions[{0}]) = {len(self._positions[0])}")
+        print(f"len(self._positions[{0}][0]) = {len(self._positions[0][0])}")
+        position_animation = Animation("neg_rosenbrock", self._positions[0], title=f"generation_{0}")
         anim = position_animation.animate()
+
+    # def animate_positions(self):
+    #     # print(self._positions)
+    #     print(len(self._positions))
+    #     print("testprint")
+    #     position_animation = Animation("rosenbrock", self._positions[-1], title="last generation")
+    #     anim = position_animation.animate()
 
     def plot_fitness(self):
         fig = plt.figure()

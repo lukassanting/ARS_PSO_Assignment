@@ -18,7 +18,7 @@ FPS = 30
 # Grab image for bot showing direction (isn't implemented correctly yet)
 # image = pygame.image.load("circle.png")
 
-# set positional value variables
+# positional value variables
 left = top = 10
 right = bottom = 590
 middle_x = middle_y = 300
@@ -36,6 +36,18 @@ wall_east = [(right, top), (right, bottom)]
 wall_south = [(left, bottom), (right, bottom)]
 wall_west = [(left, top), (left, bottom)]
 
+# Define variables and functions for sensor initialization and update
+num_sensors = 8
+# animation_sensors = []
+
+# for i in range(num_sensors):
+    # just instantiation here, sensors & sensor labels get values in the update function below
+
+def to_pygame(value):
+    return value + 300
+
+def to_backend(value):
+    return value - 300
 
 # --- Define classes for pymunk implementation of bot and wall ---
 
@@ -44,9 +56,9 @@ class Bot:
     """
 
     def __init__(self):
-        self.robot = robot([middle_x, middle_y, 0], bot_radius * 2, acceleration=10)
-        self.body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
-        self.body.position = self.robot._pos[0], self.robot._pos[1]
+        self.robot = Robot([0, 0, 0], robot_body_radius=bot_radius, acceleration=10, num_sensors=num_sensors, wall_distance=280, collision_check=False)
+        self.body = pymunk.Body()
+        self.body.position = to_pygame(self.robot.get_pos_pygame()[0]), to_pygame(self.robot.get_pos_pygame()[1])
         self.shape = pymunk.Circle(self.body, bot_radius)
         self.shape.density = 1
         self.shape.elasticity = 0;  # no 'bounce'
@@ -55,7 +67,7 @@ class Bot:
 
     def draw(self):
         x, y = self.body.position
-        angle = math.degrees(self.robot._pos[2])
+        # angle = math.degrees(self.robot._pos[2])
         # display.blit(pygame.transform.rotate(image, angle), [(int(x) - 15), (int(y)- 15)])
         pygame.draw.circle(display, black, (int(x), int(y)), bot_radius)
 
@@ -70,7 +82,7 @@ class Bot:
             if key == pygame.K_x: self.robot.stop()
             if key == pygame.K_r: self.robot.reset()
         self.robot.timestep(1 / FPS)
-        self.body.position = self.robot._pos[0], self.robot._pos[1]
+        self.body.position = to_pygame(self.robot.get_pos_pygame()[0]), to_pygame(self.robot.get_pos_pygame()[1])
 
 
 class Wall:
@@ -89,59 +101,25 @@ class Wall:
         pygame.draw.line(display, black, self.shape.a, self.shape.b, wall_size)
 
 
-class Sensor: # NOTE: Right now I think that the pymunk physics of the location doesn't get updated
-    # Can't find how to update the position of a line segment in Pymunk - might need to do it just with pyGame logic
-    def __init__(self, s_alpha, s_radius):
-        # self.body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
-        s_x = (sensor_radius * np.cos(s_alpha)) + middle_x
-        s_y = (sensor_radius * np.sin(s_alpha)) + middle_y
-        self.start = (middle_x, middle_y)
-        self.end = (middle_x + s_x, middle_y + s_y)
-        # self.shape = pymunk.Segment(self.body, self.start, self.end, 2)
-        # self.shape.sensor = True
-        # space.add(self.body, self.shape)
-        # self.shape.collision_type = 1
-
-    def draw(self, start, end):
-        # self.body = pymunk.Body()
-        self.start = start
-        self.end = end
-        # self.shape = pymunk.Segment(self.body, self.start, self.end, 2)
-        # space.add(self.body, self.shape)
-        pygame.draw.line(display, (0, 128, 0), self.start, self.end, 2)
-
-
-# --- Setting up sensors
-
-# set up sensors
-sensor_radius = 200
-animation_sensors = []
-model_sensors = []
-
-
-def degrees_to_radians(angle):
-    return angle * (np.pi / 180)
-
-
-for alpha in np.linspace(0, 360, 12, endpoint=False):
-    alpha = degrees_to_radians(alpha)
-    sensor = Sensor(alpha, sensor_radius)
-    animation_sensors.append(sensor)
-    model_sensors.append(distance_sensor(alpha, wall_north, wall_east, wall_south, wall_west, sensor_radius))
-
-
-def update_all_sensors_pos(bot):
-    bot_pos = bot._pos
-    for anim_sens, model_sens in zip(animation_sensors, model_sensors):
-        start, end = model_sens.get_pos_vpython(bot_pos)
-        anim_sens.draw((start.x, start.y), (end.x, end.y))
-
-        # object detection
-        model_sens.object_detected(bot_pos)
-
-
-# sensor_1 = distance_sensor(0, wall_north, wall_east, wall_south, wall_west, 10)
-# sensor_2 = distance_sensor(30, wall_north, wall_east, wall_south, wall_west, 10)
+# for alpha in np.linspace(0, 360, 12, endpoint=False):
+#     alpha = degrees_to_radians(alpha)
+#     sensor = Sensor(alpha, sensor_radius)
+#     animation_sensors.append(sensor)
+#     model_sensors.append(distance_sensor(alpha, wall_north, wall_east, wall_south, wall_west, bot_radius, sensor_radius))
+#
+#
+# def update_all_sensors_pos(bot):
+#     bot_pos = bot._pos
+#     for anim_sens, model_sens in zip(animation_sensors, model_sensors):
+#         start, end = model_sens.get_pos_vpython(bot_pos)
+#         anim_sens.draw((start.x, start.y), (end.x, end.y))
+#
+#         # object detection
+#         model_sens.object_detected(bot_pos)
+#
+#
+# sensor_1 = distance_sensor(0, wall_north, wall_east, wall_south, wall_west, bot_radius, sensor_radius)
+# sensor_2 = distance_sensor(30, wall_north, wall_east, wall_south, wall_west, bot_radius, sensor_radius)
 
 
 # --- The method where the simulation happens ---
@@ -169,9 +147,7 @@ def simulation():
         wall_right.draw()
         wall_top.draw()
         wall_bottom.draw()
-        update_all_sensors_pos(bot.robot)
-
-        # Add here: edited version of 'update sensors'
+        # update_all_sensors_pos(bot.robot)
 
         # update the display - using clock object to set frame-rate
         pygame.display.update()
