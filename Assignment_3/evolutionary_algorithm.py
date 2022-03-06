@@ -7,6 +7,11 @@ from typing import Tuple, List
 import tqdm
 from animation import *
 
+# testing
+def neg_rosenbrock(x, y, a=0, b=150):
+    return (-1)*((a - x) ** 2) + b * ((y - (x ** 2)) ** 2)
+# end of testing
+
 # https://stackoverflow.com/questions/8751653/how-to-convert-a-binary-string-into-a-float-value?noredirect=1&lq=1
 
 # return array of binarized weights
@@ -105,6 +110,8 @@ class Population():
 
         for indiv_number, individual in enumerate(self._individuals):
             coordinates = [positions[dim][indiv_number] for dim in range(self._fit_func_dim)]
+            print(f'Coordinates of individual: {coordinates}')
+            print(f'evaluation of neg_rosenbrock: {neg_rosenbrock(coordinates[0], coordinates[1])}')
             individual.update_fitness(self._fit_func(*coordinates))
             print(f'Individual no. {indiv_number} fitness is: {individual.fitness}')
 
@@ -127,10 +134,10 @@ class Population():
         assert center.shape[0] == self._fit_func_dim, 'Number of dimensions does not match dimensionality of center for the uniform distribution'
 
         XY = np.random.rand(self._fit_func_dim, self._size) * width
-        # print(f'initial coordinates matrix {XY}') (works)
+        # print(f'initial coordinates matrix {XY}') # works as intended
         center_shift = np.array([np.ones(self._size)*c for c in center])
         XY = np.add(XY, center_shift)
-        # print(f'coordinate matrix after applying shift {XY}') (works)
+        # print(f'coordinate matrix after applying shift {XY}') # works as intended
         return XY
 
 
@@ -163,17 +170,18 @@ class Population():
         pos_generation = np.array([pos])
 
         for step in range(int(time / update_rate)):
-            for (pos_x, pos_y, network) in zip(pos[0], pos[1], networks):
-                inputs = get_ann_inputs(pos_x, pos_y)
-                velocity = network.prop_forward(inputs)
+
+            for i in range(self._size):
+                inputs = get_ann_inputs(pos[0][i], pos[1][i])
+                velocity = networks[i].prop_forward(inputs)
                 velocity_capped = np.clip(velocity, a_min = (-1)*max_velocity, a_max=max_velocity)
 
-                pos_x += update_rate*velocity_capped[0]
-                pos_y += update_rate*velocity_capped[1]
+                pos[0][i] += update_rate*velocity_capped[0]
+                pos[1][i] += update_rate*velocity_capped[1]
+
             pos_generation = np.concatenate((pos_generation, np.array([pos])), axis=0)
         
-        # self.update_fitness(pos)
-        self.update_fitness(pos_generation[0])
+        self.update_fitness(pos)
         return pos_generation
 
 
@@ -230,7 +238,7 @@ class Population():
             width (float, optional): see description of initial_position. Defaults to 1.
         """
         for i in tqdm.trange(num_generations):
-            pos_history = self.lifecycle(time_for_generation, get_ann_inputs, update_rate, center, width)
+            pos_history = self.lifecycle(time=time_for_generation, get_ann_inputs=get_ann_inputs, update_rate=update_rate, center=center, width=width)
             self._history.add_generation_to_history(self, pos_history)
             self.generational_change(mutation_rate, verbose)
 
@@ -279,6 +287,7 @@ class Individual():
 
     def update_fitness(self, fitness):
         self._fitness = fitness
+        print(f'new fitness is {self._fitness}')
 
 # General methods
 
