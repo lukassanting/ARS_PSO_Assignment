@@ -28,6 +28,7 @@ def generate_random_genotype(ann_structure:List, borders_uniform_distribution:Tu
         List[np.ndarray]: Genotype; Output[i][j][k] is the weight between node j of layer i and node k of layer i+1.
     """    
 
+    assert borders_uniform_distribution[0] < borders_uniform_distribution[1], 'Borders_of_uniform[0] must be the lower border.'
     border_low = borders_uniform_distribution[0]
     border_high = borders_uniform_distribution[1]
     genotype = []
@@ -47,6 +48,6 @@ def generate_random_genotype(ann_structure:List, borders_uniform_distribution:Tu
             genotype.append(rng.uniform(low=-10, high=10, size=(number_nodes, number_nodes_next_layer)))
             continue
 
-        genotype.append(rng.uniform(low=border_high, high=border_low, size=(number_nodes+1, number_nodes_next_layer)))
+        genotype.append(rng.uniform(low=border_low, high=border_high, size=(number_nodes+1, number_nodes_next_layer)))
 
     return genotype

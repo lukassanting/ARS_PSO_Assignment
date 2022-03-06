@@ -3,7 +3,7 @@ import numpy as np
 from typing import List, Tuple
 from scipy.special import expit as sigmoid
 from numpy.random import default_rng
-from population.py import generate_random_genotype
+from population import generate_random_genotype
 
 # ---------- Artificial Neural Network Class ---------- #
 
@@ -73,8 +73,12 @@ class Ann():
 
 
 # testing if code works
-# network = Ann(structure=(2,4,2))
-# coords = network.prop_forward(input=np.array([1, 1]))[-1]
-# coords2 = network.prop_forward(input=coords)[-1]
-# coords3 = network.prop_forward(input=coords2)[-1]
-# coords4 = network.prop_forward(input=coords3)[-1]
+network = Ann(structure=(2,4,2))
+coords = network.prop_forward(input=np.array([1, 1]))[-1]
+coords2 = network.prop_forward(input=coords)[-1]
+coords3 = network.prop_forward(input=coords2)[-1]
+coords4 = network.prop_forward(input=coords3)[-1]
+print(coords)
+print(coords2)
+print(coords3)
+print(coords4)
