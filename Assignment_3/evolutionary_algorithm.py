@@ -1,9 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from sqlalchemy import func
 import helper
 import struct
-from typing import Tuple, List
+from typing import Callable, Tuple, List
 import tqdm
 from animation import *
 
@@ -60,10 +59,9 @@ class History():
     def animate_positions(self):
         # print(self._positions)
         print(len(self._positions))
-        for i in range(len(self._positions)):
-            print("testprint")
-            position_animation = Animation("neg_rosenbrock", self._positions[i], title=f"generation_{i}")
-            anim = position_animation.animate()
+        print("testprint")
+        position_animation = Animation("rosenbrock", self._positions[-1], title="last generation")
+        anim = position_animation.animate()
 
     def plot_fitness(self):
         fig = plt.figure()
@@ -76,7 +74,7 @@ class History():
 
 class Population():
 
-    def __init__(self, num_individuals, ann_layers:Tuple[int], bias_nodes:Tuple[bool], fitness_func:func) -> None:
+    def __init__(self, num_individuals, ann_layers:Tuple[int], bias_nodes:Tuple[bool], fitness_func:Callable) -> None:
         self._size = num_individuals
         self._layers = ann_layers
         self._bias = bias_nodes
@@ -130,7 +128,9 @@ class Population():
         assert center.ndim == 1, 'Center only accepts one-dimensional arrays.'
         assert center.shape[0] == self._fit_func_dim, 'Number of dimensions does not match dimensionality of center for the uniform distribution'
 
-        XY = np.random.rand(self._fit_func_dim, self._size) * width
+        # experimental identical starting positions for each individual & generation
+        XY = np.ones(shape=(self._fit_func_dim, self._size))
+        # XY = np.random.rand(self._fit_func_dim, self._size) * width
         # print(f'initial coordinates matrix {XY}') # works as intended
         center_shift = np.array([np.ones(self._size)*c for c in center])
         XY = np.add(XY, center_shift)
@@ -138,13 +138,13 @@ class Population():
         return XY
 
 
-    def lifecycle(self, time:int, get_ann_inputs:func, update_rate:float=1/50, center:np.ndarray=None, width:float=1, max_velocity:float=None) -> np.ndarray:
+    def lifecycle(self, time:int, get_ann_inputs:Callable, update_rate:float=1/50, center:np.ndarray=None, width:float=1, max_velocity:float=None) -> np.ndarray:
         """Initializes ANNs according to Genotypes of the individuals and let the individuals move. After a set number of
         iterations, the fitness of every individual is updated.
 
         Args:
             time (int): determines together with update_rate how many times the individuals are allowed to move
-            get_ann_inputs (func): function that takes the position of the individual as an input and returns 
+            get_ann_inputs (Callable): function that takes the position of the individual as an input and returns 
             the values that should be passed as inputs to the ANN (e.g. the gradients for the benchmark functions) or 
             the distance sensor measurements for the robot.
 
@@ -224,20 +224,20 @@ class Population():
         self._individuals = new_population
 
 
-    def evolution(self, num_generations:int, time_for_generation:int, get_ann_inputs:func, update_rate:float=1/50,
-                        center:np.ndarray=None, width:float=1, mutation_rate=0.001, verbose=False) -> None:
+    def evolution(self, num_generations:int, time_for_generation:int, get_ann_inputs:Callable, update_rate:float=1/50,
+                        center:np.ndarray=None, width:float=1, mutation_rate=0.001, max_velocity:float=None, verbose=False) -> None:
         """Performs the entire evolutionary algorithm.
 
         Args:
             num_generations (int): number of generations before the algorithm ends
             time_for_generation (int): see description of "time" parameter in lifecycle
-            get_ann_inputs (func): see description of lifecycle
+            get_ann_inputs (Callable): see description of lifecycle
             update_rate (float): see description of lifecycle
             center (np.ndarray, optional): see description of initial_position. Defaults to None.
             width (float, optional): see description of initial_position. Defaults to 1.
         """
         for i in tqdm.trange(num_generations):
-            pos_history = self.lifecycle(time=time_for_generation, get_ann_inputs=get_ann_inputs, update_rate=update_rate, center=center, width=width)
+            pos_history = self.lifecycle(time=time_for_generation, get_ann_inputs=get_ann_inputs, update_rate=update_rate, center=center, width=width, max_velocity=max_velocity)
             self._history.add_generation_to_history(self, pos_history)
             self.generational_change(mutation_rate, verbose)
 
@@ -287,7 +287,7 @@ class Individual():
 
     def update_fitness(self, fitness):
         self._fitness = fitness
-        print(f'new fitness is {self._fitness}')
+        # print(f'new fitness is {self._fitness}') # for debugging
 
 # General methods
 

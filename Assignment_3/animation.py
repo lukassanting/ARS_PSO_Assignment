@@ -48,7 +48,8 @@ class Animation:
 
     def animate(self):
         anim = FuncAnimation(self._fig, self.f_animate, frames=range(len(self._XY)), interval=150, blit=False, repeat=True)
-        anim.save(f"ANIMATION_{self._title}.gif", dpi=120, writer="ffmpeg")
+        anim.save(f"ANIMATION_{self._title}.gif", dpi=120)
+        #anim.save(f"ANIMATION_{self._title}.gif", dpi=120, writer="ffmpeg")
 
     def f_animate(self, i):
         title = 'Iteration {:02d}'.format(i)

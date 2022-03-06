@@ -36,8 +36,8 @@ def rosenbrock_modified(x, y, a=0, b=150):
 
 #  ---------------- EVOLUTION -------------------
 
-population = Population(num_individuals=30, ann_layers=(2,10,2), bias_nodes=(False,True,False), fitness_func=rosenbrock_modified)
-population.evolution(num_generations=50, time_for_generation=50, get_ann_inputs=rosenbrock_grad, width=1, mutation_rate=0.0001)
+population = Population(num_individuals=50, ann_layers=(2,2,2), bias_nodes=(False,True,False), fitness_func=rosenbrock_modified)
+population.evolution(num_generations=25, time_for_generation=30, get_ann_inputs=rosenbrock_grad, width=1, mutation_rate=0.0001, update_rate=1/5, max_velocity=5)
 fig = population._history.plot_fitness()
 plt.show()
-# anim = population._history.animate_positions()
+anim = population._history.animate_positions()
