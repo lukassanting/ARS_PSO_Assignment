@@ -17,7 +17,7 @@ def rosenbrock(x, y, a=0, b=150):
     return ((a - x) ** 2) + b * ((y - (x ** 2)) ** 2)
 
 def neg_rosenbrock(x, y, a=0, b=150):
-    return (-1)*((a - x) ** 2) + b * ((y - (x ** 2)) ** 2)
+    return (-1)*(((a - x) ** 2) + b * ((y - (x ** 2)) ** 2))
 
 
 def rosenbrock_grad(x, y, a=1, b=150):
@@ -36,8 +36,8 @@ def rosenbrock_modified(x, y, a=0, b=150):
 
 #  ---------------- EVOLUTION -------------------
 
-population = Population(num_individuals=30, ann_layers=(2,10,2), bias_nodes=(False,True,True,False), fitness_func=rosenbrock_modified)
-population.evolution(num_generations=20, time_for_generation=30, get_ann_inputs=rosenbrock_grad, width=1, mutation_rate=0)
+population = Population(num_individuals=30, ann_layers=(2,10,2), bias_nodes=(False,True,False), fitness_func=rosenbrock_modified)
+population.evolution(num_generations=50, time_for_generation=50, get_ann_inputs=rosenbrock_grad, width=1, mutation_rate=0.0001)
 fig = population._history.plot_fitness()
 plt.show()
-anim = population._history.animate_positions()
+# anim = population._history.animate_positions()

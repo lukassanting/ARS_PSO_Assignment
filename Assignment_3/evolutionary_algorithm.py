@@ -9,7 +9,7 @@ from animation import *
 
 # testing
 def neg_rosenbrock(x, y, a=0, b=150):
-    return (-1)*((a - x) ** 2) + b * ((y - (x ** 2)) ** 2)
+    return (-1)*(((a - x) ** 2) + b * ((y - (x ** 2)) ** 2))
 # end of testing
 
 # https://stackoverflow.com/questions/8751653/how-to-convert-a-binary-string-into-a-float-value?noredirect=1&lq=1
@@ -110,10 +110,7 @@ class Population():
 
         for indiv_number, individual in enumerate(self._individuals):
             coordinates = [positions[dim][indiv_number] for dim in range(self._fit_func_dim)]
-            print(f'Coordinates of individual: {coordinates}')
-            print(f'evaluation of neg_rosenbrock: {neg_rosenbrock(coordinates[0], coordinates[1])}')
             individual.update_fitness(self._fit_func(*coordinates))
-            print(f'Individual no. {indiv_number} fitness is: {individual.fitness}')
 
 
     def initial_positions(self, center:np.ndarray=None, width:float=1) -> np.ndarray:
@@ -167,6 +164,8 @@ class Population():
 
         networks = [helper.array_to_network(individual.float_genotype, self._layers, self._bias) for individual in self._individuals]
         pos = self.initial_positions(center, width)
+        # print statement for initial positions and how they change
+        print(f'')
         pos_generation = np.array([pos])
 
         for step in range(int(time / update_rate)):
@@ -199,8 +198,8 @@ class Population():
             selected_individuals = list(set(linear_rank_selection(self._individuals)))
 
         # for debugging
-        for index, indiv in enumerate(selected_individuals):
-            print(f'Fitness of selected individual {index}: {indiv._fitness}')
+        # for index, indiv in enumerate(selected_individuals):
+            # print(f'Fitness of selected individual {index}: {indiv._fitness}')
 
         if verbose: print("Selected {} out of {} initial individuals".format(len(selected_individuals), len(self._individuals)))
 
@@ -253,7 +252,8 @@ class Individual():
             assert num_genes is not None, 'Neither binary_genotype nor number of genes is specified. Need\
             to specify at least one of the two.'
             self._num_genes = num_genes
-            self._float_genotype = np.random.uniform(size=num_genes)
+            # random initialization needs to be able to produce positive and negative values
+            self._float_genotype = np.random.uniform(low=-10, high=+10, size=num_genes)
             self._binary_genotype = helper.array_to_binary(self._float_genotype)
 
         else:
