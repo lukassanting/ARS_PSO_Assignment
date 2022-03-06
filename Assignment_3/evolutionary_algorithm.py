@@ -78,7 +78,7 @@ class Population():
         self._fit_func = fitness_func
         self._fit_func_dim = self._fit_func.__code__.co_argcount-len(self._fit_func.__defaults__)
         self._indiv_gene_length = helper.get_network_size(self._layers)
-        self._individuals = np.array([Individual(0, self._indiv_gene_length) for i in range(self._size)])
+        self._individuals = np.array([Individual(num_genes=self._indiv_gene_length) for i in range(self._size)])
         self._history = History()
 
 
@@ -106,6 +106,7 @@ class Population():
         for indiv_number, individual in enumerate(self._individuals):
             coordinates = [positions[dim][indiv_number] for dim in range(self._fit_func_dim)]
             individual.update_fitness(self._fit_func(*coordinates))
+            print(f'Individual no. {indiv_number} fitness is: {individual.fitness}')
 
 
     def initial_positions(self, center:np.ndarray=None, width:float=1) -> np.ndarray:
@@ -133,7 +134,7 @@ class Population():
         return XY
 
 
-    def lifecycle(self, time:int, get_ann_inputs:func, update_rate:float=1/50, center:np.ndarray=None, width:float=1, max_velocity=None) -> np.ndarray:
+    def lifecycle(self, time:int, get_ann_inputs:func, update_rate:float=1/50, center:np.ndarray=None, width:float=1, max_velocity:float=None) -> np.ndarray:
         """Initializes ANNs according to Genotypes of the individuals and let the individuals move. After a set number of
         iterations, the fitness of every individual is updated.
 
@@ -146,35 +147,33 @@ class Population():
             update_rate (float, optional): needs to be 1/XX where XX is an integer. Defaults to 1/50.
             center (np.ndarray, optional): see description of initial_position. Defaults to None.
             width (float, optional): see description of initial_position. Defaults to 1.
+            max_velocity (np.float, optional): maximum velocity in the x and y direction with which the individuals
+            will move per timestep. This number will be taken as the maximum the minimum will be the number mulitplied by -1.
 
         Returns:
             np.ndarray: final positions of all individuals
         """
         if max_velocity is None:
-            max_velocity = np.ones(self._fit_func_dim)
-        assert max_velocity.ndim == 1, 'multi-dimensional max_velocity array not compatible. Needs to be 1-D array.'
-        assert max_velocity.shape[0] == self._fit_func_dim, 'dimension of max_velocity does not match dimension of fitness_func'
-
-        if max_velocity is None:
-            max_velocity = (-1, 1)
-        #assert max_velocity.ndim == 1, 'multi-dimensional max_velocity array not compatible. Needs to be 1-D array.'
-        #assert max_velocity.shape[0] == self._fit_func_dim, 'dimension of max_velocity does not match dimension of fitness_func'
+            max_velocity = 1
+        
+        assert max_velocity > 0, 'Specify a positive maximum velocity. Otherwise the minimu velocity is ill-defined.'
 
         networks = [helper.array_to_network(individual.float_genotype, self._layers, self._bias) for individual in self._individuals]
         pos = self.initial_positions(center, width)
         pos_generation = np.array([pos])
 
         for step in range(int(time / update_rate)):
-            for i in range(self._size):
-                inputs = get_ann_inputs(pos[0][i], pos[1][i])
-                velocity = networks[i].prop_forward(inputs)
-                velocity_capped = np.clip(velocity, a_min = max_velocity[0], a_max=max_velocity[1])
+            for (pos_x, pos_y, network) in zip(pos[0], pos[1], networks):
+                inputs = get_ann_inputs(pos_x, pos_y)
+                velocity = network.prop_forward(inputs)
+                velocity_capped = np.clip(velocity, a_min = (-1)*max_velocity, a_max=max_velocity)
 
-                pos[0][i] += update_rate*velocity_capped[0]
-                pos[1][i] += update_rate*velocity_capped[1]
+                pos_x += update_rate*velocity_capped[0]
+                pos_y += update_rate*velocity_capped[1]
             pos_generation = np.concatenate((pos_generation, np.array([pos])), axis=0)
         
-        self.update_fitness(pos)
+        # self.update_fitness(pos)
+        self.update_fitness(pos_generation[0])
         return pos_generation
 
 
@@ -190,6 +189,10 @@ class Population():
         # make sure at least 2 individuals are selected
         while len(selected_individuals) < 2:
             selected_individuals = list(set(linear_rank_selection(self._individuals)))
+
+        # for debugging
+        for index, indiv in enumerate(selected_individuals):
+            print(f'Fitness of selected individual {index}: {indiv._fitness}')
 
         if verbose: print("Selected {} out of {} initial individuals".format(len(selected_individuals), len(self._individuals)))
 
@@ -235,19 +238,28 @@ class Population():
 
 class Individual():
     
-    def __init__(self, fitness=0, size=92, bin_genes=None) -> None:
-        self._float_genotype = np.random.uniform(size=size)
-        self._binary_genotype = helper.array_to_binary(self._float_genotype)
-        self._fitness = fitness
-        self._nr_genes = size
+    def __init__(self, binary_genotype=None, num_genes=None, fitness=None) -> None:
 
-        # if the list of genes is foreknown construct the individual from them
-        if bin_genes is not None:
-            self._binary_genotype = bin_genes
+        # randomly initialize genotype if it is no specified
+        if binary_genotype is None:
+            assert num_genes is not None, 'Neither binary_genotype nor number of genes is specified. Need\
+            to specify at least one of the two.'
+            self._num_genes = num_genes
+            self._float_genotype = np.random.uniform(size=num_genes)
+            self._binary_genotype = helper.array_to_binary(self._float_genotype)
+
+        else:
+            self._binary_genotype = binary_genotype
             self._float_genotype = helper.array_to_float(self._binary_genotype)
+            self._num_genes = self._float_genotype.shape[0]
+
+        self._fitness = fitness
+ 
+
 
     def __str__(self) -> str:
         return f'Binary implementation: {self.binary_genotype} \n Float implementation: {self._float_genotype} \n Fitness: {self._fitness}'
+
 
     @property
     def float_genotype(self):
@@ -262,8 +274,8 @@ class Individual():
         return self._fitness
 
     @property
-    def nr_genes(self):
-        return self._nr_genes
+    def num_genes(self):
+        return self._num_genes
 
     def update_fitness(self, fitness):
         self._fitness = fitness
@@ -395,8 +407,8 @@ def N_point_crossover(parent1: Individual, parent2: Individual, nr_points: int) 
             child1 += sliced_parent2[i]
             child2 += sliced_parent1[i]
 
-    child1 = Individual(bin_genes=genotype_to_genes(child1, 32))
-    child2 = Individual(bin_genes=genotype_to_genes(child2, 32))
+    child1 = Individual(binary_genotype=genotype_to_genes(child1, 32))
+    child2 = Individual(binary_genotype=genotype_to_genes(child2, 32))
 
     return (child1, child2)
 
@@ -419,7 +431,7 @@ def bit_string_mutation(individual: Individual, mutation_rate=0.001) -> Individu
         else:
             mutated_individual += dna[i]
 
-    mutated_individual = Individual(bin_genes=genotype_to_genes(mutated_individual, 32))
+    mutated_individual = Individual(binary_genotype=genotype_to_genes(mutated_individual, 32))
 
     return mutated_individual
 
