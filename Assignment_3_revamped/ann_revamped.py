@@ -73,12 +73,8 @@ class Ann():
 
 
 # testing if code works
-network = Ann(structure=(2,4,2))
-coords = network.prop_forward(input=np.array([1, 1]))[-1]
-coords2 = network.prop_forward(input=coords)[-1]
-coords3 = network.prop_forward(input=coords2)[-1]
-coords4 = network.prop_forward(input=coords3)[-1]
-print(coords)
-print(coords2)
-print(coords3)
-print(coords4)
+# network = Ann(structure=(2,4,2))
+# coords = network.prop_forward(input=np.array([1, 1]))[-1]
+# coords2 = network.prop_forward(input=coords)[-1]
+# coords3 = network.prop_forward(input=coords2)[-1]
+# coords4 = network.prop_forward(input=coords3)[-1]
