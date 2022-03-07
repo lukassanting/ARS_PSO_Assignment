@@ -248,6 +248,14 @@ class Robot():
 
         return [vel_x, vel_y]
 
+    def get_vel_ann(self, vel_left, vel_right):
+        dt=1 / 30
+        vel_forward = np.round((vel_right + vel_left) / 2, decimals=8)
+        vel_x = dt * (np.round(vel_forward * np.cos(self._theta), decimals=8))
+        vel_y = dt * (np.round(vel_forward * np.sin(self._theta), decimals=8))
+        self._theta += dt * 0.1 * (1 / self._l) * (vel_right - vel_left)
+        return [vel_x, vel_y]
+
     def pymunk_position_update(self, coords):
         self._pymunk_position[0] = coords[0]
         self._pymunk_position[1] = coords[1]

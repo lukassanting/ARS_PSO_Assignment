@@ -30,6 +30,7 @@ class Pymunk_Bot:
         self.shape.collision_type = 1
 
     def move(self, key=None, FPS=30):
+        # CHECK IF MOVING WITH KEYS
         if self.movement_type == 'keys':
             if key:
                 if key == pygame.K_w: self.bot.accel_left()
@@ -42,15 +43,16 @@ class Pymunk_Bot:
                 if key == pygame.K_r: self.bot.reset()
         # Case 1: Using pymunk auto collision, not our own collision
         if self.pymunk_collision:
-            if self.movement_type == 'keys':
+            if self.movement_type == 'keys':                    # movement via keyboard (manual)
                 bot_velocity = self.bot.get_xy_velocity(1/FPS)
-            else:
-                bot_velocity = self.ann.prop_forward(self.body.position)
+            else:                                               # movement via ann (auto)
+                ann_velocity = self.ann.prop_forward(self.body.position)
+                bot_velocity = self.bot.get_vel_ann(ann_velocity[0], ann_velocity[1])
             bot_velocity = self.cap_velocity(bot_velocity)  # cap the velocity to be between -25 and 25
             self.body.velocity = bot_velocity[0], bot_velocity[1]
             self.bot.pymunk_position_update(self.body.position)
 
-            # Check if there is a collision, update counter
+            # Check if there is a collision, update counter for collisions
             sensor_check = False
             for sensor in self.bot._sensors:
                 sensor.object_detected(self.bot._pymunk_position, verbose=False)
@@ -67,7 +69,7 @@ class Pymunk_Bot:
             grid_x, grid_y = math.ceil(grid_position[0]), math.ceil(grid_position[1])
             if self.dust_grid[grid_x, grid_y] == 0: self.dust_grid[grid_x, grid_y] = 1
 
-        # Case 2: Using our own collision, not pymunk collison
+        # Case 2: Using our own collision, not pymunk collison (NOT USED)
         else:
             self.bot.timestep(1/30)
             self.body.position = (self.bot._pos[0] + 100, self.bot._pos[1] + 400)
