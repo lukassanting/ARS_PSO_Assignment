@@ -84,7 +84,9 @@ class Population():
         self._layers = ann_layers
         self._bias = bias_nodes
         self._fit_func = fitness_func
-        self._fit_func_dim = self._fit_func.__code__.co_argcount-len(self._fit_func.__defaults__)
+        self._fit_func_dim = self._fit_func.__code__.co_argcount
+        if self._fit_func.__defaults__ is not None:
+            self._fit_func_dim = self._fit_func_dim-len(self._fit_func.__defaults__)
         self._indiv_gene_length = helper.get_network_size(self._layers)
         self._individuals = np.array([Individual(num_genes=self._indiv_gene_length) for i in range(self._size)])
         self._history = History()
@@ -250,7 +252,7 @@ class Population():
 
     def bot_evolution(self, population, edges, pymunk_walls, pygame_display, pymunk_space, bot_radius=20):
         # main evolution loop, call bot_lifecycle here
-        self.bot_lifecyle(population, edges, pymunk_walls, pygame_display, pymunk_space, bot_radius)
+        self.bot_lifecycle(population, edges, pymunk_walls, pygame_display, pymunk_space, bot_radius)
         return
 
     def bot_lifecycle(self, population, edges, pymunk_walls, pygame_display, pymunk_space, bot_radius=20):
@@ -258,7 +260,7 @@ class Population():
         # 1.1 Create the networks from provided Population of weights
         networks = [helper.array_to_network(individual.float_genotype, population._layers, population._bias) for individual in population._individuals]
         # 1.2 Create the bots
-        bot_population = [helper.create_bot_with_ann(networks, edges, bot_radius) for network in networks]
+        bot_population = [helper.create_bot_with_ann(network, edges, bot_radius) for network in networks]
 
         # Step 2: Let each bot run a simulation
         # 2.2 Run the simulation

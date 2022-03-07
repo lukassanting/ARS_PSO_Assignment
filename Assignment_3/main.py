@@ -27,7 +27,6 @@ def rosenbrock_grad(x, y, a=1, b=150):
 def rastigrin(x, y):
     return 20 + x ** 2 - 10 * np.cos(2 * np.pi * x) + y ** 2 - 10 * np.cos(2 * np.pi * y)
 
-
 def rastigrin_grad(x, y):
     return [2 * x + 20 * np.pi * np.sin(2 * np.pi * x), 2 * y + 20 * np.pi * np.sin(2 * np.pi * y)]
 
@@ -36,8 +35,8 @@ def rosenbrock_modified(x, y, a=0, b=150):
 
 #  ---------------- EVOLUTION -------------------
 
-population = Population(num_individuals=50, ann_layers=(2,2,2), bias_nodes=(False,True,False), fitness_func=rosenbrock_modified)
-population.evolution(num_generations=25, time_for_generation=30, get_ann_inputs=rosenbrock_grad, width=1, mutation_rate=0.0001, update_rate=1/5, max_velocity=5)
+population = Population(num_individuals=30, ann_layers=(2,10,2), bias_nodes=(False,True,False), fitness_func=rosenbrock_modified)
+population.evolution(num_generations=10, time_for_generation=100, get_ann_inputs=rosenbrock_grad, width=1, mutation_rate=0.0001)
 fig = population._history.plot_fitness()
 plt.show()
 anim = population._history.animate_positions()
