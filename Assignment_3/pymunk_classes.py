@@ -5,7 +5,7 @@ from motion_model import *
 class Pymunk_Bot:
     """ Class for a movable robot (circle) in PyMunk using the motion_model Robot class
     """
-    def __init__(self, robot, pygame_display, pymunk_space, radius, color, dust_grid, pymunk_collision=True):
+    def __init__(self, robot, pygame_display, pymunk_space, radius, color, dust_grid, ann=None, pymunk_collision=True):
         self.bot = robot
         self.pygame_display = pygame_display
         self.pymunk_space = pymunk_space
@@ -14,6 +14,9 @@ class Pymunk_Bot:
         self.pymunk_collision = pymunk_collision
         self.hitting_wall = False
         self.dust_grid = dust_grid
+        self.ann = ann
+        self.movement_type = 'keys'
+        if ann is not None: self.movement_type = 'ann'
         self.collision_counter = 0
 
         self.body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
@@ -27,15 +30,18 @@ class Pymunk_Bot:
         self.shape.collision_type = 1
 
     def move(self, key=None, FPS=30):
-        if key:
-            if key == pygame.K_w: self.bot.accel_left()
-            if key == pygame.K_s: self.bot.decel_left()
-            if key == pygame.K_o: self.bot.accel_right()
-            if key == pygame.K_l: self.bot.decel_right()
-            if key == pygame.K_y: self.bot.accel_both()
-            if key == pygame.K_h: self.bot.decel_both()
-            if key == pygame.K_x: self.bot.stop()
-            if key == pygame.K_r: self.bot.reset()
+        if self.movement_type == 'keys':
+            if key:
+                if key == pygame.K_w: self.bot.accel_left()
+                if key == pygame.K_s: self.bot.decel_left()
+                if key == pygame.K_o: self.bot.accel_right()
+                if key == pygame.K_l: self.bot.decel_right()
+                if key == pygame.K_y: self.bot.accel_both()
+                if key == pygame.K_h: self.bot.decel_both()
+                if key == pygame.K_x: self.bot.stop()
+                if key == pygame.K_r: self.bot.reset()
+        else:
+            print("DO MOVEMENT WITH ANN HERE?")
         # Case 1: Using pymunk auto collision, not our own collision
         if self.pymunk_collision:
             bot_velocity = self.bot.get_xy_velocity(1/FPS)
