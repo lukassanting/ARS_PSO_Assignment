@@ -8,7 +8,7 @@ from pymunk_classes import *
 # -------- Pymunk Animation -------- #
 # ---- UPDATED FOR ASSIGNMENT 3 ---- #
 
-def simulation(bot, walls, display, space, FPS=30, walk_time=5000):
+def simulation(bot, walls, display, space, FPS=30, walk_time=3000):
 
     # set colours for display
     white = (255, 255, 255)
@@ -40,7 +40,7 @@ def simulation(bot, walls, display, space, FPS=30, walk_time=5000):
 
 # EVERYTHING BELOW THIS IS IF YOU WANT TO RUN A MANUAL SIMULATION AND CONTROL BY KEYBOARD
 
-def manual_simulation():
+def manual_simulation(walk_time=3000):
 
     pygame.init()
 
@@ -95,11 +95,11 @@ def manual_simulation():
         pymunk_walls.append(Pymunk_Obstacle(pygame_display=pygame_display, pymunk_space=pymunk_space, radius=10, color=black, p=edge))
 
     # call the function simulation to keep the display running until we quit
-    simulation(pymunk_bot, pymunk_walls,pygame_display,pymunk_space, FPS=30, walk_time=1000)
+    simulation(pymunk_bot, pymunk_walls,pygame_display,pymunk_space, FPS=30, walk_time=walk_time)
 
     # End the pygame display
     pygame.quit()
 
 # CALL THIS TO RUN A MANUAL SIMULATION
-# manual_simulation()
+# manual_simulation(walk_time=3000)
 

@@ -30,21 +30,19 @@ class Pymunk_Bot:
         self.shape.collision_type = 1
 
     def move(self, key=None, FPS=30):
-        # CHECK IF MOVING WITH KEYS
-        if self.movement_type == 'keys':
-            if key:
-                if key == pygame.K_w: self.bot.accel_left()
-                if key == pygame.K_s: self.bot.decel_left()
-                if key == pygame.K_o: self.bot.accel_right()
-                if key == pygame.K_l: self.bot.decel_right()
-                if key == pygame.K_y: self.bot.accel_both()
-                if key == pygame.K_h: self.bot.decel_both()
-                if key == pygame.K_x: self.bot.stop()
-                if key == pygame.K_r: self.bot.reset()
         # Case 1: Using pymunk auto collision, not our own collision
         if self.pymunk_collision:
             # Case 1.1: Manual movement (using keys)
             if self.movement_type == 'keys':
+                if key:
+                    if key == pygame.K_w: self.bot.accel_left()
+                    if key == pygame.K_s: self.bot.decel_left()
+                    if key == pygame.K_o: self.bot.accel_right()
+                    if key == pygame.K_l: self.bot.decel_right()
+                    if key == pygame.K_y: self.bot.accel_both()
+                    if key == pygame.K_h: self.bot.decel_both()
+                    if key == pygame.K_x: self.bot.stop()
+                    if key == pygame.K_r: self.bot.reset()
                 bot_velocity = self.bot.get_xy_velocity(1/FPS)
             # Case 1.2: Auto movement (using ANN)
             else:
