@@ -18,6 +18,7 @@ class DistanceSensor():
         self._sens_dist = sensor_measuring_distance
         self._radius_rob = radius_robot
         self._dist_to_wall = None
+        self._hitting_wall = False
         if obstacle_edges:
             self._obstacle_edges = self.get_obstacle_edges(obstacle_edges)
 
@@ -68,6 +69,8 @@ class DistanceSensor():
             int_pt = sensor_line.intersection(w)  # point of intersection with the wall
             int_pt = list(int_pt.coords)
             if not sensor_line.intersection(w).is_empty:
+                # Check if BOT instead of SENSOR is hitting wall. radius?
+                self._hitting_wall = True
                 # if LineString get first point
                 if isinstance(int_pt, LineString):
                     int_pt = int_pt.xy[0]
@@ -79,6 +82,7 @@ class DistanceSensor():
                     print(f"Distance from wall with coordinates {w}: {dis}")
                 return
             else:
+                self._hitting_wall = False
                 # print(f"Distance from {w} out of sensor range")
                 pass
         self._dist_to_wall = None

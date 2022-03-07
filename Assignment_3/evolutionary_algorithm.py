@@ -1,11 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from sqlalchemy import func
 import helper
 import struct
-from typing import Callable, Tuple, List
+from typing import Tuple, List
 import tqdm
 from animation import *
-
+import pymunk_animation
+from pymunk_classes import *
 # testing
 def neg_rosenbrock(x, y, a=0, b=150):
     return (-1)*(((a - x) ** 2) + b * ((y - (x ** 2)) ** 2))
@@ -22,7 +24,7 @@ class History():
     def __init__(self) -> None:
         self._num_generations = 0
         self._positions = None # each list element stores the positions of all individuals of a generation
-        self._fitness = None # each listelement stores the fitness of all individuals of a generation
+        self._fitness = None # each list element stores the fitness of all individuals of a generation
         self._avg_fitness = []
         self._sd_avg_fitness = [] # standard deviation of average
         self._fitness_best = []
@@ -56,23 +58,15 @@ class History():
                 self._genotype_historic_best = np.array([genotypes[index_fittest]])                
             else: self._genotype_historic_best = np.concatenate((self._genotype_historic_best, np.array([genotypes[index_fittest]])), axis=0)
 
-
-
     def animate_positions(self):
-    # position_animation = Animation("neg_rosenbrock", self._positions[1], title="generation_1")
-    # anim = position_animation.animate()
-        print(f"len(self._positions) = {len(self._positions)}")
-        print(f"len(self._positions[{0}]) = {len(self._positions[0])}")
-        print(f"len(self._positions[{0}][0]) = {len(self._positions[0][0])}")
-        position_animation = Animation("neg_rosenbrock", self._positions[0], title=f"generation_{0}")
-        anim = position_animation.animate()
-
-    # def animate_positions(self):
-    #     # print(self._positions)
-    #     print(len(self._positions))
-    #     print("testprint")
-    #     position_animation = Animation("rosenbrock", self._positions[-1], title="last generation")
-    #     anim = position_animation.animate()
+        # position_animation = Animation("neg_rosenbrock", self._positions[1], title="generation_1")
+        # anim = position_animation.animate()
+        for i in range(len(self._positions)):
+            print(f"len(self._positions) = {len(self._positions)}")
+            print(f"len(self._positions[{i}]) = {len(self._positions[i])}")
+            print(f"len(self._positions[{i}][0]) = {len(self._positions[i][0])}")
+            position_animation = Animation("neg_rosenbrock", self._positions[i], title=f"generation_{i}")
+            anim = position_animation.animate()
 
     def plot_fitness(self):
         fig = plt.figure()
@@ -85,7 +79,7 @@ class History():
 
 class Population():
 
-    def __init__(self, num_individuals, ann_layers:Tuple[int], bias_nodes:Tuple[bool], fitness_func:Callable) -> None:
+    def __init__(self, num_individuals, ann_layers:Tuple[int], bias_nodes:Tuple[bool], fitness_func:func) -> None:
         self._size = num_individuals
         self._layers = ann_layers
         self._bias = bias_nodes
@@ -139,9 +133,7 @@ class Population():
         assert center.ndim == 1, 'Center only accepts one-dimensional arrays.'
         assert center.shape[0] == self._fit_func_dim, 'Number of dimensions does not match dimensionality of center for the uniform distribution'
 
-        # experimental identical starting positions for each individual & generation
-        XY = np.ones(shape=(self._fit_func_dim, self._size))
-        # XY = np.random.rand(self._fit_func_dim, self._size) * width
+        XY = np.random.rand(self._fit_func_dim, self._size) * width
         # print(f'initial coordinates matrix {XY}') # works as intended
         center_shift = np.array([np.ones(self._size)*c for c in center])
         XY = np.add(XY, center_shift)
@@ -149,13 +141,13 @@ class Population():
         return XY
 
 
-    def lifecycle(self, time:int, get_ann_inputs:Callable, update_rate:float=1/50, center:np.ndarray=None, width:float=1, max_velocity:float=None) -> np.ndarray:
+    def lifecycle(self, time:int, get_ann_inputs:func, update_rate:float=1/50, center:np.ndarray=None, width:float=1, max_velocity:float=None) -> np.ndarray:
         """Initializes ANNs according to Genotypes of the individuals and let the individuals move. After a set number of
         iterations, the fitness of every individual is updated.
 
         Args:
             time (int): determines together with update_rate how many times the individuals are allowed to move
-            get_ann_inputs (Callable): function that takes the position of the individual as an input and returns 
+            get_ann_inputs (func): function that takes the position of the individual as an input and returns 
             the values that should be passed as inputs to the ANN (e.g. the gradients for the benchmark functions) or 
             the distance sensor measurements for the robot.
 
@@ -179,7 +171,7 @@ class Population():
         print(f'')
         pos_generation = np.array([pos])
 
-        for step in range(int(time / update_rate)):
+        for step in range(int(time)):
 
             for i in range(self._size):
                 inputs = get_ann_inputs(pos[0][i], pos[1][i])
@@ -235,22 +227,49 @@ class Population():
         self._individuals = new_population
 
 
-    def evolution(self, num_generations:int, time_for_generation:int, get_ann_inputs:Callable, update_rate:float=1/50,
-                        center:np.ndarray=None, width:float=1, mutation_rate=0.001, max_velocity:float=None, verbose=False) -> None:
+    def evolution(self, num_generations:int, time_for_generation:int, get_ann_inputs:func, update_rate:float=1/50,
+                        center:np.ndarray=None, width:float=1, mutation_rate=0.001, verbose=False) -> None:
         """Performs the entire evolutionary algorithm.
 
         Args:
             num_generations (int): number of generations before the algorithm ends
             time_for_generation (int): see description of "time" parameter in lifecycle
-            get_ann_inputs (Callable): see description of lifecycle
+            get_ann_inputs (func): see description of lifecycle
             update_rate (float): see description of lifecycle
             center (np.ndarray, optional): see description of initial_position. Defaults to None.
             width (float, optional): see description of initial_position. Defaults to 1.
         """
         for i in tqdm.trange(num_generations):
-            pos_history = self.lifecycle(time=time_for_generation, get_ann_inputs=get_ann_inputs, update_rate=update_rate, center=center, width=width, max_velocity=max_velocity)
+            pos_history = self.lifecycle(time=time_for_generation, get_ann_inputs=get_ann_inputs, update_rate=update_rate, center=center, width=width)
             self._history.add_generation_to_history(self, pos_history)
             self.generational_change(mutation_rate, verbose)
+
+    def bot_update_fitness(self):
+        # evaluate bot_fitness here similar to update_fitness?
+        return
+
+    def bot_evolution(self, population, edges, pymunk_walls, pygame_display, pymunk_space, bot_radius=20):
+        # main evolution loop, call bot_lifecycle here
+        self.bot_lifecyle(population, edges, pymunk_walls, pygame_display, pymunk_space, bot_radius)
+        return
+
+    def bot_lifecycle(self, population, edges, pymunk_walls, pygame_display, pymunk_space, bot_radius=20):
+        # Step 1: Initialisation
+        # 1.1 Create the networks from provided Population of weights
+        networks = [helper.array_to_network(individual.float_genotype, population._layers, population._bias) for individual in population._individuals]
+        # 1.2 Create the bots
+        bot_population = [helper.create_bot_with_ann(networks, edges, bot_radius) for network in networks]
+
+        # Step 2: Let each bot run a simulation
+        # 2.2 Run the simulation
+        for bot in bot_population:
+            pymunk_animation.simulation(bot, pymunk_walls, pygame_display, pymunk_space, FPS=30,walk_time=5000)
+            print(bot.get_fitness())
+        # 2.3 Evaluate the simulation
+        #  - enumerate over bot_population
+        #  - for each bot, get fitness
+        #  -
+
 
             
 
@@ -298,7 +317,7 @@ class Individual():
 
     def update_fitness(self, fitness):
         self._fitness = fitness
-        # print(f'new fitness is {self._fitness}') # for debugging
+        print(f'new fitness is {self._fitness}')
 
 # General methods
 

@@ -40,11 +40,12 @@ class Pymunk_Bot:
                 if key == pygame.K_h: self.bot.decel_both()
                 if key == pygame.K_x: self.bot.stop()
                 if key == pygame.K_r: self.bot.reset()
-        else:
-            print("DO MOVEMENT WITH ANN HERE?")
         # Case 1: Using pymunk auto collision, not our own collision
         if self.pymunk_collision:
-            bot_velocity = self.bot.get_xy_velocity(1/FPS)
+            if self.movement_type == 'keys':
+                bot_velocity = self.bot.get_xy_velocity(1/FPS)
+            else:
+                bot_velocity = self.ann.prop_forward(self.body.pos[0], self.body.pos[1])
             bot_velocity = self.cap_velocity(bot_velocity)  # cap the velocity to be between -25 and 25
             self.body.velocity = bot_velocity[0], bot_velocity[1]
             self.bot.pymunk_position_update(self.body.position)
@@ -78,6 +79,16 @@ class Pymunk_Bot:
         if velocity[1] <= -25: velocity[1] = -25
         if velocity[1] >= 25: velocity[1] = 25
         return velocity
+
+    def get_dust_count(self):
+        dust_count = 0
+        for x in self.dust_grid:
+            for y in x:
+                if y == 1: dust_count = dust_count + 1
+        return dust_count
+
+    def get_fitness(self):
+        return self.get_dust_count() - (5*self.collision_counter)
 
 
     def draw(self):
