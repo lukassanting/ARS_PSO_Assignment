@@ -45,7 +45,6 @@ class Pymunk_Bot:
         if self.pymunk_collision:
             if self.movement_type == 'keys':                    # movement via keyboard (manual)
                 bot_velocity = self.bot.get_xy_velocity(1/FPS)
-                print(bot_velocity)
             else:                                               # movement via ann (auto)
                 ann_velocity = self.ann.prop_forward(self.body.position)
                 bot_velocity = self.bot.get_vel_ann(ann_velocity[0], ann_velocity[1], 1/FPS)

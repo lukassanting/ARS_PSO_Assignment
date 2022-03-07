@@ -248,9 +248,9 @@ class Robot():
 
         return [vel_x, vel_y]
 
-    def get_vel_ann(self, vel_left, vel_right, dt=1 / 30):
-        self._vel_left = vel_left
+    def get_vel_ann(self, vel_right, vel_left, dt=1 / 30):
         self._vel_right = vel_right
+        self._vel_left = vel_left
         self.update_rot_rate()
         self.update_rot_radius()
 
