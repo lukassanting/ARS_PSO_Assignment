@@ -47,6 +47,22 @@ class History():
         self._sd_avg_fitness.append(np.std(fitness_values))
 
 
+    def add_bot_fitness_history(self, population, fitness) -> None:
+        '''
+            stores the fitness history
+        '''
+
+        fitness_values = fitness
+        if self._fitness is None:
+            self._fitness = np.array([fitness_values])
+        else: self._fitness = np.concatenate((self._fitness, np.array([fitness_values])), axis=0)
+
+        self.store_best_in_generation(population.get_all_genotypes_float())
+
+        self._avg_fitness.append(np.mean(fitness_values))
+        self._sd_avg_fitness.append(np.std(fitness_values))
+
+
     def store_best_in_generation(self, genotypes) -> None:
         # requires the fitness of the new generation to be stored as the last element in self._fitness
         # if multiple individuals have the highest fitness in a population, only the first one is kept
@@ -250,7 +266,8 @@ class Population():
         # main evolution loop, call bot_lifecycle here
 
         for i in tqdm.trange(num_generations):
-            self.bot_lifecycle(population, edges, pymunk_walls, pygame_display, pymunk_space, bot_radius)
+            ind_fitness = self.bot_lifecycle(population, edges, pymunk_walls, pygame_display, pymunk_space, bot_radius)
+            self._history.add_bot_fitness_history(self, ind_fitness)
             self.generational_change(mutation_rate, verbose)
 
         pygame.quit()
@@ -272,13 +289,12 @@ class Population():
         #  - enumerate over bot_population
         #  - for each bot, get fitness
 
+        fitnesses = []
         for indiv_number, individual in enumerate(self._individuals):
-            individual.update_fitness(bot_population[indiv_number].get_fitness())
-
-    def bot_update_fitness(self):
-        # evaluate bot_fitness here similar to update_fitness?
-        return
-
+            f = individual.update_fitness(bot_population[indiv_number].get_fitness())
+            fitnesses.append(f)
+        
+        return fitnesses
             
 
 class Individual():
@@ -326,6 +342,8 @@ class Individual():
     def update_fitness(self, fitness):
         self._fitness = fitness
         print(f'new fitness is {self._fitness}')
+
+        return fitness
 
 # General methods
 
