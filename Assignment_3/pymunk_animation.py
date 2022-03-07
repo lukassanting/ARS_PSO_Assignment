@@ -2,6 +2,7 @@ import pymunk
 import pygame
 import math
 from motion_model import *
+import numpy as np
 from pymunk_classes import *
 
 # -------- Pymunk Animation -------- #
@@ -9,7 +10,12 @@ from pymunk_classes import *
 
 # --- Initialise pygame and make a display appear ---
 pygame.init()
-display = pygame.display.set_mode((1000, 600))
+display_width = 1000
+display_height = 600
+grid_size = 20
+
+display = pygame.display.set_mode((display_width, display_height))
+dust_grid = np.zeros((int(display_width/grid_size), int(display_height/grid_size)))
 
 # --- Set global values
 space = pymunk.Space()  # Holds our pymunk physics space
@@ -33,35 +39,20 @@ edge_mid_n = [(350, 10), (350, 100)]
 edge_mid_s = [(350, 250), (350, 595)]
 edges = [edge_north, edge_south, edge_east, edge_west, edge_sw, edge_mid_s, edge_mid_n]
 
-def simulation(FPS=30):
-    # Make the motion-model Robot
-    robot = Robot([0, 0, 0],
-                  distance_between_wheels=bot_radius*2,
-                  robot_body_radius=bot_radius,
-                  acceleration=30,
-                  num_sensors=8,
-                  sensor_measuring_distance=50,
-                  obstacle_edges=edges,
-                  wall_distance=280,          # !! doesn't match edge locations: expects square room from old impl !!
-                  collision_check=True,      # !! wall_distance needs to be correct before setting collision to True !!
-                  slide_collision_check=False,
-                  pymunk_offset=[100,400,0])  # x, y position offset, as backend logic is based on 0,0
+def fitness_func(pymunk_bot):
+    collision_count = pymunk_bot.collision_counter
+    dust_count = 0
+    for x in pymunk_bot.dust_grid:
+        for y in x:
+            if y == 1: dust_count = dust_count + 1
 
-    # Make the pymunk-pygame Bot, taking the motion_model Robot as an argument
-    bot = Pymunk_Bot(robot=robot,
-                     pygame_display=display,
-                     pymunk_space=space,
-                     radius=bot_radius,
-                     color=black,
-                     pymunk_collision=True)
+    return dust_count - (5*collision_count)
 
-    # Use earlier defined obstacle edges to create walls for Pymunk Visuals & Pygame Graphics
-    walls = []
-    for edge in edges:
-        walls.append(Pymunk_Obstacle(pygame_display=display, pymunk_space=space, radius=10, color=black, p=edge))
+
+def simulation(bot, walls, FPS=30, walk_time=5000):
 
     # Main loop of the simulation
-    while(True):
+    while(walk_time>0):
         # Move robot based on keyboard input
         key = "none"
         for event in pygame.event.get():
@@ -70,6 +61,9 @@ def simulation(FPS=30):
             if event.type == pygame.KEYDOWN:
                 key = event.key
         bot.move(key)
+
+
+        # print(bot.collision_counter)
 
         # Update the pygame display color & draw the elements
         display.fill(white)
@@ -81,12 +75,40 @@ def simulation(FPS=30):
 
         # pass some time in the simulation
         space.step(1 / FPS)  # basis: correlate with FPS. Low val = more accurate simulation, but slower program
+        walk_time = walk_time - 1
 
 
+# Make the motion-model Robot
+motion_model_robot = Robot([0, 0, 0],
+              distance_between_wheels=bot_radius*2,
+              robot_body_radius=bot_radius,
+              acceleration=30,
+              num_sensors=8,
+              sensor_measuring_distance=30,
+              obstacle_edges=edges,
+              wall_distance=280,          # !! doesn't match edge locations: expects square room from old impl !!
+              collision_check=True,      # !! wall_distance needs to be correct before setting collision to True !!
+              slide_collision_check=False,
+              pymunk_offset=[100,400,0])  # x, y position offset, as backend logic is based on 0,0
+
+# Make the pymunk-pygame Bot, taking the motion_model Robot as an argument
+pymunk_bot = Pymunk_Bot(robot=motion_model_robot,
+                 pygame_display=display,
+                 pymunk_space=space,
+                 radius=bot_radius,
+                 color=black,
+                 dust_grid=dust_grid,
+                 pymunk_collision=True)
+
+# Use earlier defined obstacle edges to create walls for Pymunk Visuals & Pygame Graphics
+pymunk_walls = []
+for edge in edges:
+    pymunk_walls.append(Pymunk_Obstacle(pygame_display=display, pymunk_space=space, radius=10, color=black, p=edge))
 
 
 # call the function simulation to keep the display running until we quit
-simulation(FPS=30)
+simulation(pymunk_bot, pymunk_walls, FPS=30, walk_time=1000)
+print(fitness_func(pymunk_bot))
 
 # End the pygame display
 pygame.quit()

@@ -5,13 +5,16 @@ from motion_model import *
 class Pymunk_Bot:
     """ Class for a movable robot (circle) in PyMunk using the motion_model Robot class
     """
-    def __init__(self, robot, pygame_display, pymunk_space, radius, color, pymunk_collision=True):
+    def __init__(self, robot, pygame_display, pymunk_space, radius, color, dust_grid, pymunk_collision=True):
         self.bot = robot
         self.pygame_display = pygame_display
         self.pymunk_space = pymunk_space
         self.radius = radius
         self.color = color
         self.pymunk_collision = pymunk_collision
+        self.hitting_wall = False
+        self.dust_grid = dust_grid
+        self.collision_counter = 0
 
         self.body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
         if self.pymunk_collision:
@@ -36,13 +39,40 @@ class Pymunk_Bot:
         # Case 1: Using pymunk auto collision, not our own collision
         if self.pymunk_collision:
             bot_velocity = self.bot.get_xy_velocity(1/FPS)
+            bot_velocity = self.cap_velocity(bot_velocity)  # cap the velocity to be between -25 and 25
             self.body.velocity = bot_velocity[0], bot_velocity[1]
             self.bot.pymunk_position_update(self.body.position)
+
+            # Check if there is a collision, update counter
+            sensor_check = False
+            for sensor in self.bot._sensors:
+                sensor.object_detected(self.bot._pymunk_position, verbose=False)
+                if sensor._hitting_wall:
+                    self.hitting_wall = True
+                    sensor_check = True
+            if sensor_check == False:
+                if self.hitting_wall:
+                    self.hitting_wall = False
+                    self.collision_counter = self.collision_counter + 1
+
+            # Update dust_particles grid based on bot location
+            grid_position = self.body.position / 20
+            grid_x, grid_y = math.ceil(grid_position[0]), math.ceil(grid_position[1])
+            if self.dust_grid[grid_x, grid_y] == 0: self.dust_grid[grid_x, grid_y] = 1
+
         # Case 2: Using our own collision, not pymunk collison
         else:
             self.bot.timestep(1/30)
             self.body.position = (self.bot._pos[0] + 100, self.bot._pos[1] + 400)
             self.bot.pymunk_position_update(self.body.position)
+
+    def cap_velocity(self, velocity):
+        if velocity[0] <= -25: velocity[0] = -25
+        if velocity[0] >= 25: velocity[0] = 25
+        if velocity[1] <= -25: velocity[1] = -25
+        if velocity[1] >= 25: velocity[1] = 25
+        return velocity
+
 
     def draw(self):
         pygame.draw.circle(self.pygame_display, self.color, self.body.position, self.radius)
