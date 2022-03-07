@@ -283,7 +283,7 @@ class Population():
         # Step 2: Let each bot run a simulation
         # 2.2 Run the simulation
         for bot in bot_population:
-            simulation(bot, pymunk_walls, pygame_display, pymunk_space, FPS=30, walk_time=1000)
+            simulation(bot, pymunk_walls, pygame_display, pymunk_space, FPS=30, walk_time=3000)
 
         # 2.3 Evaluate the simulation
         #  - enumerate over bot_population

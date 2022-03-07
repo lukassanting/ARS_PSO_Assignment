@@ -66,13 +66,11 @@ class Pymunk_Bot:
             sensor_check = False
             for sensor in self.bot._sensors:
                 sensor.object_detected(self.bot._pymunk_position, verbose=False)
-                if sensor._hitting_wall:
-                    self.hitting_wall = True
-                    sensor_check = True
-            if sensor_check == False:
-                if self.hitting_wall:
-                    self.hitting_wall = False
-                    self.collision_counter = self.collision_counter + 1
+                if sensor._dist_to_wall is not None:
+                    if sensor._dist_to_wall <= self.radius + 5:
+                        # print("Collision detected!!!")
+                        self.collision_counter += 1
+                        break 
 
             # Update dust_particles grid based on bot location
             grid_position = self.body.position / 20
@@ -101,7 +99,7 @@ class Pymunk_Bot:
         return dust_count
 
     def get_fitness(self):
-        return self.get_dust_count() - (5 * self.collision_counter)
+        return self.get_dust_count()/ (self.collision_counter + 1)
 
     def draw(self):
         pygame.draw.circle(self.pygame_display, self.color, self.body.position, self.radius)

@@ -65,11 +65,11 @@ for edge in edges:
 def bot_fitness(pymunk_bot):
     collision_count = pymunk_bot.collision_counter
     dust_count = pymunk_bot.get_dust_count()
-    return dust_count - (5*collision_count)
+    return dust_count / collision_count+1
 
 # ------------- calling evolution --------------
 
-population = Population(num_individuals=5, ann_layers=(8,8,4,2), bias_nodes=(False,True,True,False), fitness_func=bot_fitness)
-population.bot_evolution(population, edges, pymunk_walls, pygame_display, pymunk_space, num_generations=5)
+population = Population(num_individuals=40, ann_layers=(8,8,4,2), bias_nodes=(False,True,True,False), fitness_func=bot_fitness)
+population.bot_evolution(population, edges, pymunk_walls, pygame_display, pymunk_space, num_generations=80)
 fig = population._history.plot_fitness()
 plt.show()
