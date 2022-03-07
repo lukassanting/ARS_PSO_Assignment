@@ -49,7 +49,6 @@ def simulation(bot, walls, display, space, FPS=30, walk_time=5000):
         # pass some time in the simulation
         space.step(1 / FPS)  # basis: correlate with FPS. Low val = more accurate simulation, but slower program
         walk_time = walk_time - 1
-    pygame.quit()
 
 # # Make the motion-model Robot
 # motion_model_robot = Robot([0, 0, 0],

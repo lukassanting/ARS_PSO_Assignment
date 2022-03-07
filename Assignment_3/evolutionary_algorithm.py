@@ -265,13 +265,14 @@ class Population():
         # Step 2: Let each bot run a simulation
         # 2.2 Run the simulation
         for bot in bot_population:
-            pymunk_animation.simulation(bot, pymunk_walls, pygame_display, pymunk_space, FPS=30,walk_time=5000)
+            pymunk_animation.simulation(bot, pymunk_walls, pygame_display, pymunk_space, FPS=30,walk_time=1000)
             print(bot.get_fitness())
         # 2.3 Evaluate the simulation
         #  - enumerate over bot_population
         #  - for each bot, get fitness
         #  -
 
+        pygame.quit()
 
             
 
