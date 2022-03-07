@@ -6,8 +6,9 @@ import struct
 from typing import Tuple, List
 import tqdm
 from animation import *
-import pymunk_animation
+from pymunk_animation import simulation
 from pymunk_classes import *
+import random
 # testing
 def neg_rosenbrock(x, y, a=0, b=150):
     return (-1)*(((a - x) ** 2) + b * ((y - (x ** 2)) ** 2))
@@ -266,7 +267,7 @@ class Population():
         # Step 2: Let each bot run a simulation
         # 2.2 Run the simulation
         for bot in bot_population:
-            pymunk_animation.simulation(bot, pymunk_walls, pygame_display, pymunk_space, FPS=30,walk_time=1000)
+            simulation(bot, pymunk_walls, pygame_display, pymunk_space, FPS=30,walk_time=1000)
 
         # 2.3 Evaluate the simulation
         #  - enumerate over bot_population

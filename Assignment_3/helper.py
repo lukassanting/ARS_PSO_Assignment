@@ -115,13 +115,10 @@ def create_bot_with_ann(network, edges, bot_radius=20, display_width=1000, displ
                                num_sensors=8,
                                sensor_measuring_distance=30,
                                obstacle_edges=edges,
-                               wall_distance=280,
-                               # !! doesn't match edge locations: expects square room from old impl !!
-                               collision_check=True,
-                               # !! if not using pymunk collision, wall_distance needs to be correct before setting collision to True !!
+                               wall_distance=280, # !! doesn't match edge locations: expects square room from old impl !!
+                               collision_check=True, # !! if not using pymunk collision, wall_distance needs to be correct before setting collision to True !!
                                slide_collision_check=False,
-                               pymunk_offset=[100, 400,
-                                              0])  # x, y position offset, as backend logic is based on 0,0
+                               pymunk_offset=[100, 400, 0])  # x, y position offset, as backend logic is based on 0,0
 
     pymunk_bot = Pymunk_Bot(robot=motion_model_robot,
                             pygame_display=pygame.display.set_mode((display_width, display_height)),

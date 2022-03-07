@@ -45,6 +45,7 @@ class Pymunk_Bot:
         if self.pymunk_collision:
             if self.movement_type == 'keys':                    # movement via keyboard (manual)
                 bot_velocity = self.bot.get_xy_velocity(1/FPS)
+                print(bot_velocity)
             else:                                               # movement via ann (auto)
                 ann_velocity = self.ann.prop_forward(self.body.position)
                 bot_velocity = self.bot.get_vel_ann(ann_velocity[0], ann_velocity[1], 1/FPS)
@@ -67,7 +68,8 @@ class Pymunk_Bot:
             # Update dust_particles grid based on bot location
             grid_position = self.body.position / 20
             grid_x, grid_y = math.ceil(grid_position[0]), math.ceil(grid_position[1])
-            if self.dust_grid[grid_x, grid_y] == 0: self.dust_grid[grid_x, grid_y] = 1
+            if self.dust_grid[grid_x, grid_y] == 0:
+                self.dust_grid[grid_x, grid_y] = 1
 
         # Case 2: Using our own collision, not pymunk collison (NOT USED)
         else:
