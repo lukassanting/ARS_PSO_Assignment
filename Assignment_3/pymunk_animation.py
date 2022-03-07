@@ -38,6 +38,7 @@ def simulation(bot, walls, display, space, FPS=30, walk_time=5000):
         space.step(1 / FPS)  # basis: correlate with FPS. Low val = more accurate simulation, but slower program
         walk_time = walk_time - 1
 
+# EVERYTHING BELOW THIS IS IF YOU WANT TO RUN A MANUAL SIMULATION AND CONTROL BY KEYBOARD
 
 def manual_simulation():
 
@@ -68,9 +69,6 @@ def manual_simulation():
     edge_mid_n = [(350, 10), (350, 100)]
     edge_mid_s = [(350, 250), (350, 595)]
     edges = [edge_north, edge_south, edge_east, edge_west, edge_sw, edge_mid_s, edge_mid_n]
-
-
-
     # Make the motion-model Robot
     motion_model_robot = Robot([0, 0, 0],
                   distance_between_wheels=bot_radius*2,
@@ -83,7 +81,6 @@ def manual_simulation():
                   collision_check=True,      # !! if not using pymunk collision, wall_distance needs to be correct before setting collision to True !!
                   slide_collision_check=False,
                   pymunk_offset=[100,400,0])  # x, y position offset, as backend logic is based on 0,0
-
     # Make the pymunk-pygame Bot, taking the motion_model Robot as an argument
     pymunk_bot = Pymunk_Bot(robot=motion_model_robot,
                      pygame_display=pygame_display,
@@ -92,7 +89,6 @@ def manual_simulation():
                      color=black,
                      dust_grid=dust_grid,
                      pymunk_collision=True)
-
     # Use earlier defined obstacle edges to create walls for Pymunk Visuals & Pygame Graphics
     pymunk_walls = []
     for edge in edges:
@@ -104,5 +100,6 @@ def manual_simulation():
     # End the pygame display
     pygame.quit()
 
+# CALL THIS TO RUN A MANUAL SIMULATION
 # manual_simulation()
 
