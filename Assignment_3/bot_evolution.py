@@ -17,7 +17,6 @@ import helper
 # 1.2 For each of these weights, make an ANN (in the class itself?)
 # 1.3 For each of these ANNs, make a pymunk_bot with the ANN as an element
 
-
 # 2. Walkabout and Evaluation
 # 2.1 Run a simulation for a limited time (i.e. i=50,000) each element of the population
 #     Edit class so that if ANN=/=empty, then uses ANN for movement instead of keys
@@ -29,7 +28,9 @@ import helper
 # 3.2 Repeat steps 1.2 onwards with this new generation of weights
 # 3.3 Repeat this for as many generations as specified
 
+
 pygame.init()
+
 display_width = 1000
 display_height = 600
 grid_size = 20
@@ -45,7 +46,6 @@ bot_radius = 20
 white = (255, 255, 255)
 black = (0, 0, 0)
 pygame_display.fill(white)
-
 
 # Define the locations of obstacle edges, used both pygame/pymunk, & for sensors (for intersection & collision checks)
 edge_north = [(10, 5), (990, 5)]
@@ -70,5 +70,5 @@ def bot_fitness(pymunk_bot):
 
 # ------------- calling evolution --------------
 
-population = Population(num_individuals=5, ann_layers=(2,10,2), bias_nodes=(False,True,False), fitness_func=bot_fitness)
-population.bot_evolution(population, edges, pymunk_walls, pygame_display, pymunk_space)
+population = Population(num_individuals=5, ann_layers=(2,8,8,2), bias_nodes=(False,True,True,False), fitness_func=bot_fitness)
+population.bot_evolution(population, edges, pymunk_walls, pygame_display, pymunk_space,num_generations=5)

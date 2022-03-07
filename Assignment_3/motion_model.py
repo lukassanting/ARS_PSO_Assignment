@@ -248,8 +248,8 @@ class Robot():
 
         return [vel_x, vel_y]
 
-    def get_vel_ann(self, vel_left, vel_right):
-        dt=1 / 30
+    def get_vel_ann(self, vel_left, vel_right, dt=1 / 30):
+
         vel_forward = np.round((vel_right + vel_left) / 2, decimals=8)
         vel_x = dt * (np.round(vel_forward * np.cos(self._theta), decimals=8))
         vel_y = dt * (np.round(vel_forward * np.sin(self._theta), decimals=8))

@@ -47,7 +47,7 @@ class Pymunk_Bot:
                 bot_velocity = self.bot.get_xy_velocity(1/FPS)
             else:                                               # movement via ann (auto)
                 ann_velocity = self.ann.prop_forward(self.body.position)
-                bot_velocity = self.bot.get_vel_ann(ann_velocity[0], ann_velocity[1])
+                bot_velocity = self.bot.get_vel_ann(ann_velocity[0], ann_velocity[1], 1/FPS)
             bot_velocity = self.cap_velocity(bot_velocity)  # cap the velocity to be between -25 and 25
             self.body.velocity = bot_velocity[0], bot_velocity[1]
             self.bot.pymunk_position_update(self.body.position)

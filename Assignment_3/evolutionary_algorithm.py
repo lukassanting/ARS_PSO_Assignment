@@ -246,16 +246,17 @@ class Population():
             self._history.add_generation_to_history(self, pos_history)
             self.generational_change(mutation_rate, verbose)
 
-    def bot_update_fitness(self):
-        # evaluate bot_fitness here similar to update_fitness?
-        return
-
-    def bot_evolution(self, population, edges, pymunk_walls, pygame_display, pymunk_space, bot_radius=20):
+    def bot_evolution(self,population, edges, pymunk_walls, pygame_display, pymunk_space, bot_radius=20, num_generations=10, mutation_rate=0.001,  verbose=False):
         # main evolution loop, call bot_lifecycle here
-        self.bot_lifecycle(population, edges, pymunk_walls, pygame_display, pymunk_space, bot_radius)
-        return
+
+        for i in tqdm.trange(num_generations):
+            self.bot_lifecycle(population, edges, pymunk_walls, pygame_display, pymunk_space, bot_radius)
+            self.generational_change(mutation_rate, verbose)
+
+        pygame.quit()
 
     def bot_lifecycle(self, population, edges, pymunk_walls, pygame_display, pymunk_space, bot_radius=20):
+
         # Step 1: Initialisation
         # 1.1 Create the networks from provided Population of weights
         networks = [helper.array_to_network(individual.float_genotype, population._layers, population._bias) for individual in population._individuals]
@@ -266,13 +267,17 @@ class Population():
         # 2.2 Run the simulation
         for bot in bot_population:
             pymunk_animation.simulation(bot, pymunk_walls, pygame_display, pymunk_space, FPS=30,walk_time=1000)
-            print(bot.get_fitness())
+
         # 2.3 Evaluate the simulation
         #  - enumerate over bot_population
         #  - for each bot, get fitness
-        #  -
 
-        pygame.quit()
+        for indiv_number, individual in enumerate(self._individuals):
+            individual.update_fitness(bot_population[indiv_number].get_fitness())
+
+    def bot_update_fitness(self):
+        # evaluate bot_fitness here similar to update_fitness?
+        return
 
             
 
