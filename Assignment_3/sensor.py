@@ -69,14 +69,15 @@ class DistanceSensor():
             int_pt = sensor_line.intersection(w)  # point of intersection with the wall
             int_pt = list(int_pt.coords)
             if not sensor_line.intersection(w).is_empty:
-                # Check if BOT instead of SENSOR is hitting wall. radius?
-                self._hitting_wall = True
                 # if LineString get first point
                 if isinstance(int_pt, LineString):
                     int_pt = int_pt.xy[0]
 
                 dis = self.distance_detected_object(sensor_line.__geo_interface__.get('coordinates')[0][:-1], (int_pt[0][0], int_pt[0][1]))
                 self._dist_to_wall = dis
+                # Check if BOT instead of SENSOR is hitting wall. radius?
+                if (dis - self._radius_rob) >= 10:
+                    self._hitting_wall = True
                 if verbose:
                     print(f"Wall with coordinates {w} intersection!")
                     print(f"Distance from wall with coordinates {w}: {dis}")
