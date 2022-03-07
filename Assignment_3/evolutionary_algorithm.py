@@ -262,12 +262,12 @@ class Population():
         # 1.1 Create the networks from provided Population of weights
         networks = [helper.array_to_network(individual.float_genotype, population._layers, population._bias) for individual in population._individuals]
         # 1.2 Create the bots
-        bot_population = [helper.create_bot_with_ann(network, edges, bot_radius) for network in networks]
+        bot_population = [helper.create_bot_with_ann(network, edges, pygame_display, pymunk_space, bot_radius) for network in networks]
 
         # Step 2: Let each bot run a simulation
         # 2.2 Run the simulation
         for bot in bot_population:
-            simulation(bot, pymunk_walls, pygame_display, pymunk_space, FPS=30,walk_time=1000)
+            simulation(bot, pymunk_walls, pygame_display, pymunk_space, FPS=30, walk_time=1000)
 
         # 2.3 Evaluate the simulation
         #  - enumerate over bot_population

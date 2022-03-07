@@ -2,9 +2,11 @@ import pymunk
 import pygame
 from motion_model import *
 
+
 class Pymunk_Bot:
     """ Class for a movable robot (circle) in PyMunk using the motion_model Robot class
     """
+
     def __init__(self, robot, pygame_display, pymunk_space, radius, color, dust_grid, ann=None, pymunk_collision=True):
         self.bot = robot
         self.pygame_display = pygame_display
@@ -22,7 +24,7 @@ class Pymunk_Bot:
         self.body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
         if self.pymunk_collision:
             self.body = pymunk.Body()
-        self.body.position = self.bot.get_pos_pygame()[0]+100, self.bot.get_pos_pygame()[1] + 400
+        self.body.position = self.bot.get_pos_pygame()[0] + 100, self.bot.get_pos_pygame()[1] + 400
         self.shape = pymunk.Circle(self.body, self.radius)
         self.shape.density = 1
         self.shape.elasticity = 0
@@ -43,14 +45,21 @@ class Pymunk_Bot:
                     if key == pygame.K_h: self.bot.decel_both()
                     if key == pygame.K_x: self.bot.stop()
                     if key == pygame.K_r: self.bot.reset()
-                bot_velocity = self.bot.get_xy_velocity(1/FPS)
+                bot_velocity = self.bot.get_xy_velocity(1 / FPS)
             # Case 1.2: Auto movement (using ANN)
             else:
                 ann_velocity = self.ann.prop_forward(self.body.position)
-                bot_velocity = self.bot.get_vel_ann(ann_velocity[0], ann_velocity[1], 1/FPS)
+                if (ann_velocity[0] > 0 and ann_velocity[1] > 0): self.bot.accel_both()
+                elif (ann_velocity[0] < 0 and ann_velocity[1] < 0): self.bot.decel_both()
+                else:
+                    if ann_velocity[0] > 0: self.bot.accel_left()
+                    if ann_velocity[0] < 0: self.bot.decel_left()
+                    if ann_velocity[1] > 0: self.bot.accel_right()
+                    if ann_velocity[1] < 0: self.bot.decel_right()
+                bot_velocity = self.bot.get_xy_velocity(1 / FPS)
             bot_velocity = self.cap_velocity(bot_velocity)  # cap the velocity to be between -25 and 25
-            self.body.velocity = bot_velocity[0], bot_velocity[1]   # set body (pymunk) velocity
-            self.bot.pymunk_position_update(self.body.position)     # update position in the motion_model
+            self.body.velocity = bot_velocity[0], bot_velocity[1]  # set body (pymunk) velocity
+            self.bot.pymunk_position_update(self.body.position)  # update position in the motion_model
 
             # Check if there is a collision, update counter for collisions
             sensor_check = False
@@ -72,7 +81,7 @@ class Pymunk_Bot:
 
         # Case 2: Using our own collision, not pymunk collison (NOT USED)
         else:
-            self.bot.timestep(1/30)
+            self.bot.timestep(1 / 30)
             self.body.position = (self.bot._pos[0] + 100, self.bot._pos[1] + 400)
             self.bot.pymunk_position_update(self.body.position)
 
@@ -91,8 +100,7 @@ class Pymunk_Bot:
         return dust_count
 
     def get_fitness(self):
-        return self.get_dust_count() - (5*self.collision_counter)
-
+        return self.get_dust_count() - (5 * self.collision_counter)
 
     def draw(self):
         pygame.draw.circle(self.pygame_display, self.color, self.body.position, self.radius)
@@ -109,11 +117,11 @@ class Pymunk_Bot:
             # Case 2: Using our own collision, not pymunk collison
             else:
                 start, end = sensor.get_sensor_position(self.bot._pos)
-                pygame.draw.line(self.pygame_display, self.color, (start[0]+100, start[1]+400), (end[0]+100, end[1]+400), 5)
+                pygame.draw.line(self.pygame_display, self.color, (start[0] + 100, start[1] + 400),
+                                 (end[0] + 100, end[1] + 400), 5)
                 if sensor._offset == 0:
-                    pygame.draw.line(self.pygame_display, (255, 0, 0), (start[0]+100, start[1]+400), (end[0]+100, end[1]+400), 5)
-
-
+                    pygame.draw.line(self.pygame_display, (255, 0, 0), (start[0] + 100, start[1] + 400),
+                                     (end[0] + 100, end[1] + 400), 5)
 
     # def to_pygame(self, value):
     #     return value + 300
@@ -122,6 +130,7 @@ class Pymunk_Bot:
 class Pymunk_Obstacle:
     """ Class for a wall in pymunk, for pygame. Soon to be extended for more than just line segments.
     """
+
     def __init__(self, pygame_display, pymunk_space, radius, color, p):
         self.pygame_display = pygame_display
         self.pymunk_space = pymunk_space

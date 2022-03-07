@@ -107,7 +107,7 @@ def get_network_layer_size(layers: Tuple[int]) -> List[int]:
             size.append(layers[i + 2] * (layers[i + 1] + layers[i + 2] + 1))
     return size
 
-def create_bot_with_ann(network, edges, bot_radius=20, display_width=1000, display_height=600, grid_size=20):
+def create_bot_with_ann(network, edges, pygame_display, pymunk_space, bot_radius=20, display_width=1000, display_height=600, grid_size=20):
     motion_model_robot = Robot([0, 0, 0],
                                distance_between_wheels=bot_radius * 2,
                                robot_body_radius=bot_radius,
@@ -121,8 +121,8 @@ def create_bot_with_ann(network, edges, bot_radius=20, display_width=1000, displ
                                pymunk_offset=[100, 400, 0])  # x, y position offset, as backend logic is based on 0,0
 
     pymunk_bot = Pymunk_Bot(robot=motion_model_robot,
-                            pygame_display=pygame.display.set_mode((display_width, display_height)),
-                            pymunk_space=pymunk.Space(),
+                            pygame_display=pygame_display,
+                            pymunk_space=pymunk_space,
                             radius=bot_radius,
                             color=(0, 0, 0),
                             dust_grid=np.zeros((int(display_width/grid_size), int(display_height/grid_size))),

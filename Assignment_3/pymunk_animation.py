@@ -18,7 +18,7 @@ def simulation(bot, walls, display, space, FPS=30, walk_time=3000):
     # Main loop of the simulation
     while(walk_time>0):
         # Move robot based on keyboard input
-        key = "none"
+        key = None
         for event in pygame.event.get():
             if event.type == pygame.QUIT:   # pygame.QUIT gets called when we press the 'x' button on the window
                 return                      # exit out of the function call to end the display
@@ -95,7 +95,7 @@ def manual_simulation(walk_time=3000):
         pymunk_walls.append(Pymunk_Obstacle(pygame_display=pygame_display, pymunk_space=pymunk_space, radius=10, color=black, p=edge))
 
     # call the function simulation to keep the display running until we quit
-    simulation(pymunk_bot, pymunk_walls,pygame_display,pymunk_space, FPS=30, walk_time=walk_time)
+    simulation(pymunk_bot, pymunk_walls, pygame_display, pymunk_space, FPS=30, walk_time=walk_time)
 
     # End the pygame display
     pygame.quit()

@@ -71,4 +71,4 @@ def bot_fitness(pymunk_bot):
 # ------------- calling evolution --------------
 
 population = Population(num_individuals=5, ann_layers=(2,8,8,2), bias_nodes=(False,True,True,False), fitness_func=bot_fitness)
-population.bot_evolution(population, edges, pymunk_walls, pygame_display, pymunk_space,num_generations=5)
+population.bot_evolution(population, edges, pymunk_walls, pygame_display, pymunk_space, num_generations=5)
