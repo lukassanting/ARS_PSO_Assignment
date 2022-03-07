@@ -260,6 +260,18 @@ class Robot():
         self._theta += dt * 0.1 * (1 / self._l) * (self._vel_right - self._vel_left)
         return [vel_x, vel_y]
 
+    def increment_vel_ann(self, update_left, update_right, dt=1 / 30):
+        self._vel_right += update_right
+        self._vel_left += update_left
+        self.update_rot_rate()
+        self.update_rot_radius()
+
+        vel_forward = np.round((self._vel_right + self._vel_left) / 2, decimals=8)
+        vel_x = dt * (np.round(vel_forward * np.cos(self._theta), decimals=8))
+        vel_y = dt * (np.round(vel_forward * np.sin(self._theta), decimals=8))
+        self._theta += dt * 0.1 * (1 / self._l) * (self._vel_right - self._vel_left)
+        return [vel_x, vel_y]
+
     def pymunk_position_update(self, coords):
         self._pymunk_position[0] = coords[0]
         self._pymunk_position[1] = coords[1]

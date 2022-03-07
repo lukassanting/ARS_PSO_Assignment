@@ -48,16 +48,16 @@ class Pymunk_Bot:
                 bot_velocity = self.bot.get_xy_velocity(1 / FPS)
             # Case 1.2: Auto movement (using ANN)
             else:
-                distances = [sensor._activations for sensor in self.bot._sensors]
+                distances = [sensor._activation for sensor in self.bot._sensors]
                 ann_velocity = self.ann.prop_forward(distances)
-                if (ann_velocity[0] > 0 and ann_velocity[1] > 0): self.bot.accel_both()
-                elif (ann_velocity[0] < 0 and ann_velocity[1] < 0): self.bot.decel_both()
-                else:
-                    if ann_velocity[0] > 0: self.bot.accel_left()
-                    if ann_velocity[0] < 0: self.bot.decel_left()
-                    if ann_velocity[1] > 0: self.bot.accel_right()
-                    if ann_velocity[1] < 0: self.bot.decel_right()
-                bot_velocity = self.bot.get_xy_velocity(1 / FPS)
+                #if (ann_velocity[0] > 0 and ann_velocity[1] > 0): self.bot.accel_both()
+                #elif (ann_velocity[0] < 0 and ann_velocity[1] < 0): self.bot.decel_both()
+                #else:
+                #    if ann_velocity[0] > 0: self.bot.accel_left()
+                #    if ann_velocity[0] < 0: self.bot.decel_left()
+                #    if ann_velocity[1] > 0: self.bot.accel_right()
+                #    if ann_velocity[1] < 0: self.bot.decel_right()
+                bot_velocity = self.bot.increment_val_ann(ann_velocity[0], ann_velocity[1], 1/FPS)
             bot_velocity = self.cap_velocity(bot_velocity)  # cap the velocity to be between -25 and 25
             self.body.velocity = bot_velocity[0], bot_velocity[1]  # set body (pymunk) velocity
             self.bot.pymunk_position_update(self.body.position)  # update position in the motion_model
@@ -87,10 +87,10 @@ class Pymunk_Bot:
             self.bot.pymunk_position_update(self.body.position)
 
     def cap_velocity(self, velocity):
-        if velocity[0] <= -25: velocity[0] = -25
-        if velocity[0] >= 25: velocity[0] = 25
-        if velocity[1] <= -25: velocity[1] = -25
-        if velocity[1] >= 25: velocity[1] = 25
+        if velocity[0] <= -0.5: velocity[0] = -0.5
+        if velocity[0] >= 0.5: velocity[0] = 0.5
+        if velocity[1] <= -0.5: velocity[1] = -0.5
+        if velocity[1] >= 0.5: velocity[1] = 0.5
         return velocity
 
     def get_dust_count(self):
