@@ -113,7 +113,7 @@ def create_bot_with_ann(network, edges, pygame_display, pymunk_space, bot_radius
                                robot_body_radius=bot_radius,
                                acceleration=30,
                                num_sensors=8,
-                               sensor_measuring_distance=30,
+                               sensor_measuring_distance=100,
                                obstacle_edges=edges,
                                wall_distance=280, # !! doesn't match edge locations: expects square room from old impl !!
                                collision_check=True, # !! if not using pymunk collision, wall_distance needs to be correct before setting collision to True !!

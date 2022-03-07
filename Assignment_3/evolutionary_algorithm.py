@@ -1,9 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from sqlalchemy import func
 import helper
 import struct
-from typing import Tuple, List
+from typing import Callable, Tuple, List
 import tqdm
 from animation import *
 from pymunk_animation import simulation
@@ -80,7 +79,7 @@ class History():
 
 class Population():
 
-    def __init__(self, num_individuals, ann_layers:Tuple[int], bias_nodes:Tuple[bool], fitness_func:func) -> None:
+    def __init__(self, num_individuals, ann_layers:Tuple[int], bias_nodes:Tuple[bool], fitness_func:Callable) -> None:
         self._size = num_individuals
         self._layers = ann_layers
         self._bias = bias_nodes
@@ -144,13 +143,13 @@ class Population():
         return XY
 
 
-    def lifecycle(self, time:int, get_ann_inputs:func, update_rate:float=1/50, center:np.ndarray=None, width:float=1, max_velocity:float=None) -> np.ndarray:
+    def lifecycle(self, time:int, get_ann_inputs:Callable, update_rate:float=1/50, center:np.ndarray=None, width:float=1, max_velocity:float=None) -> np.ndarray:
         """Initializes ANNs according to Genotypes of the individuals and let the individuals move. After a set number of
         iterations, the fitness of every individual is updated.
 
         Args:
             time (int): determines together with update_rate how many times the individuals are allowed to move
-            get_ann_inputs (func): function that takes the position of the individual as an input and returns 
+            get_ann_inputs (Callable): function that takes the position of the individual as an input and returns 
             the values that should be passed as inputs to the ANN (e.g. the gradients for the benchmark functions) or 
             the distance sensor measurements for the robot.
 
@@ -230,14 +229,14 @@ class Population():
         self._individuals = new_population
 
 
-    def evolution(self, num_generations:int, time_for_generation:int, get_ann_inputs:func, update_rate:float=1/50,
+    def evolution(self, num_generations:int, time_for_generation:int, get_ann_inputs:Callable, update_rate:float=1/50,
                         center:np.ndarray=None, width:float=1, mutation_rate=0.001, verbose=False) -> None:
         """Performs the entire evolutionary algorithm.
 
         Args:
             num_generations (int): number of generations before the algorithm ends
             time_for_generation (int): see description of "time" parameter in lifecycle
-            get_ann_inputs (func): see description of lifecycle
+            get_ann_inputs (Callable): see description of lifecycle
             update_rate (float): see description of lifecycle
             center (np.ndarray, optional): see description of initial_position. Defaults to None.
             width (float, optional): see description of initial_position. Defaults to 1.

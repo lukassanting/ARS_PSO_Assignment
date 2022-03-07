@@ -19,6 +19,7 @@ class DistanceSensor():
         self._radius_rob = radius_robot
         self._dist_to_wall = None
         self._hitting_wall = False
+        self._activation = 0
         if obstacle_edges:
             self._obstacle_edges = self.get_obstacle_edges(obstacle_edges)
 
@@ -32,6 +33,10 @@ class DistanceSensor():
             # coords are expected to be start and endpoints of obstacle edges (walls) in form: [(10, 5), (990, 5)]
             edges.append(LineString(coord))
         return edges
+
+    @property
+    def get_dist_to_wall(self):
+        return self._dist_to_wall
 
     @property
     def get_dist_to_wall(self):
@@ -56,6 +61,7 @@ class DistanceSensor():
 
     def update(self, pos_robot, verbose=False):
         self.object_detected(pos_robot, verbose=verbose)
+        self.update_activation()
 
     def object_detected(self, pos_robot, verbose=False):
 
@@ -69,15 +75,14 @@ class DistanceSensor():
             int_pt = sensor_line.intersection(w)  # point of intersection with the wall
             int_pt = list(int_pt.coords)
             if not sensor_line.intersection(w).is_empty:
+                # Check if BOT instead of SENSOR is hitting wall. radius?
+                self._hitting_wall = True
                 # if LineString get first point
                 if isinstance(int_pt, LineString):
                     int_pt = int_pt.xy[0]
 
                 dis = self.distance_detected_object(sensor_line.__geo_interface__.get('coordinates')[0][:-1], (int_pt[0][0], int_pt[0][1]))
                 self._dist_to_wall = dis
-                # Check if BOT instead of SENSOR is hitting wall. radius?
-                if (dis - self._radius_rob) >= 10:
-                    self._hitting_wall = True
                 if verbose:
                     print(f"Wall with coordinates {w} intersection!")
                     print(f"Distance from wall with coordinates {w}: {dis}")
@@ -111,6 +116,12 @@ class DistanceSensor():
             print(sensor_start, intersection_point)
 
         return np.round(np.linalg.norm(sensor_start-intersection_point), 4)
+
+    def update_activation(self):
+        if self._dist_to_wall is None:
+            return 0
+        assert self._dist_to_wall < 0, 'Distance to object can\'t be negative'
+        self._activation = (self._sens_dist-self._dist_to_wall)
 
 
     # def dist_to_wall(self, pos_robot):

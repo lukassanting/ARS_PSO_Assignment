@@ -3,7 +3,6 @@ from evolutionary_algorithm import *
 import pymunk_animation
 from animation import *
 from typing import Tuple, List
-from sqlalchemy import func
 import numpy as np
 import matplotlib.pyplot as plt
 import pymunk_classes
@@ -70,5 +69,5 @@ def bot_fitness(pymunk_bot):
 
 # ------------- calling evolution --------------
 
-population = Population(num_individuals=5, ann_layers=(2,8,8,2), bias_nodes=(False,True,True,False), fitness_func=bot_fitness)
+population = Population(num_individuals=5, ann_layers=(8,8,4,2), bias_nodes=(False,True,True,False), fitness_func=bot_fitness)
 population.bot_evolution(population, edges, pymunk_walls, pygame_display, pymunk_space, num_generations=5)

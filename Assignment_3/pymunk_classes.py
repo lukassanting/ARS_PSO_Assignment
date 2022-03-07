@@ -48,7 +48,8 @@ class Pymunk_Bot:
                 bot_velocity = self.bot.get_xy_velocity(1 / FPS)
             # Case 1.2: Auto movement (using ANN)
             else:
-                ann_velocity = self.ann.prop_forward(self.body.position)
+                distances = [sensor._activations for sensor in self.bot._sensors]
+                ann_velocity = self.ann.prop_forward(distances)
                 if (ann_velocity[0] > 0 and ann_velocity[1] > 0): self.bot.accel_both()
                 elif (ann_velocity[0] < 0 and ann_velocity[1] < 0): self.bot.decel_both()
                 else:
