@@ -27,12 +27,13 @@ def simulation(bot, walls, display, space, FPS=30, walk_time=3000):
         bot.move(key)
 
         # Update the pygame display color & draw the elements
-        display.fill(white)
-        bot.draw()
-        bot.draw_sensors()
-        for wall in walls:
-            wall.draw()
-        pygame.display.update()
+        if walk_time%5 == 0:
+            display.fill(white)
+            bot.draw()
+            bot.draw_sensors()
+            for wall in walls:
+                wall.draw()
+            pygame.display.update()
 
         # pass some time in the simulation
         space.step(1 / FPS)  # basis: correlate with FPS. Low val = more accurate simulation, but slower program

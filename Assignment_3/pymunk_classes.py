@@ -59,6 +59,10 @@ class Pymunk_Bot:
                 #    if ann_velocity[1] < 0: self.bot.decel_right()
                 capped_velocity = self.cap_velocity(ann_velocity)
                 bot_velocity = self.bot.increment_vel_ann(capped_velocity[0], capped_velocity[1], 1/FPS)
+            if bot_velocity[0] > 10: bot_velocity[0] = 10
+            if bot_velocity[0] < -10: bot_velocity[0] = -10
+            if bot_velocity[1] > 10: bot_velocity[0] = 10
+            if bot_velocity[1] < -10: bot_velocity[0] = -10
             self.body.velocity = bot_velocity[0], bot_velocity[1]  # set body (pymunk) velocity
             self.bot.pymunk_position_update(self.body.position)  # update position in the motion_model
 
