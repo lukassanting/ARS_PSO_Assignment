@@ -47,14 +47,24 @@ black = (0, 0, 0)
 pygame_display.fill(white)
 
 # Define the locations of obstacle edges, used both pygame/pymunk, & for sensors (for intersection & collision checks)
-edge_north = [(10, 5), (990, 5)]
-edge_south = [(200, 595), (990, 595)]
-edge_west = [(5, 0), (5, 400)]
-edge_east = [(990, 0), (990, 600)]
-edge_sw = [(5, 400), (200, 595)]
-edge_mid_n = [(350, 10), (350, 100)]
-edge_mid_s = [(350, 250), (350, 595)]
-edges = [edge_north, edge_south, edge_east, edge_west, edge_sw, edge_mid_s, edge_mid_n]
+# edge_north = [(10, 5), (990, 5)]
+# edge_south = [(200, 595), (990, 595)]
+# edge_west = [(5, 0), (5, 400)]
+# edge_east = [(990, 0), (990, 600)]
+# edge_sw = [(5, 400), (200, 595)]
+# edge_mid_n = [(350, 10), (350, 100)]
+# edge_mid_s = [(350, 250), (350, 595)]
+# edges = [edge_north, edge_south, edge_east, edge_west, edge_sw, edge_mid_s, edge_mid_n]
+
+# New room
+edge_north_new = [(10, 5), (990, 5)]
+edge_south_new = [(10, 595), (990, 595)]
+edge_west_new = [(5, 0), (5, 600)]
+edge_east_new = [(990, 0), (990, 600)]
+edge_mid_l = [(250,0),(250,400)]
+edge_mid_c = [(500,200),(500,600)]
+edge_mid_r = [(750,0),(750,400)]
+edges=[edge_north_new, edge_south_new,edge_west_new, edge_east_new, edge_mid_l, edge_mid_c, edge_mid_r]
 
 pymunk_walls = []
 for edge in edges:

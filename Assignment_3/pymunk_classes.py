@@ -104,6 +104,12 @@ class Pymunk_Bot:
     def draw(self):
         pygame.draw.circle(self.pygame_display, self.color, self.body.position, self.radius)
 
+    def draw_dust(self):
+        for i, row in enumerate(self.dust_grid):
+            for j, column in enumerate(row):
+                if column == 0:
+                    pygame.draw.circle(self.pygame_display, (0,0,255), (i*20, j*20), 5)
+
     def draw_sensors(self):
         sensors = self.bot._sensors
         for sensor in sensors:
