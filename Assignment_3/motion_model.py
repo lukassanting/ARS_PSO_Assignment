@@ -273,6 +273,9 @@ class Robot():
         return [vel_x, vel_y]
 
     def pymunk_position_update(self, coords):
+        if (coords[0] == np.NaN) or (coords[1] == np.NaN) or (self._theta == np.NaN):
+            print(f'One of the coordinates in pymunk_position_update is NaN.')
+            return
         self._pymunk_position[0] = coords[0]
         self._pymunk_position[1] = coords[1]
         self._pymunk_position[2] = self._theta

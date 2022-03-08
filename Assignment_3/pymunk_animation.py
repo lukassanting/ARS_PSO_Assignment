@@ -31,6 +31,7 @@ def simulation(bot, walls, display, space, FPS=30, walk_time=3000):
             display.fill(white)
             bot.draw()
             bot.draw_sensors()
+            bot.draw_dust()
             for wall in walls:
                 wall.draw()
             pygame.display.update()
@@ -76,7 +77,7 @@ def manual_simulation(walk_time=3000):
                   robot_body_radius=bot_radius,
                   acceleration=30,
                   num_sensors=8,
-                  sensor_measuring_distance=30,
+                  sensor_measuring_distance=100,
                   obstacle_edges=edges,
                   wall_distance=280,          # !! doesn't match edge locations: expects square room from old impl !!
                   collision_check=True,      # !! if not using pymunk collision, wall_distance needs to be correct before setting collision to True !!

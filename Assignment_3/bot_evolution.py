@@ -56,6 +56,16 @@ edge_mid_n = [(350, 10), (350, 100)]
 edge_mid_s = [(350, 250), (350, 595)]
 edges = [edge_north, edge_south, edge_east, edge_west, edge_sw, edge_mid_s, edge_mid_n]
 
+# New room
+# edge_north_new = [(10, 5), (990, 5)]
+# edge_south_new = [(10, 595), (990, 595)]
+# edge_west_new = [(5, 0), (5, 600)]
+# edge_east_new = [(990, 0), (990, 600)]
+# edge_mid_l = [(250,0),(250,400)]
+# edge_mid_c = [(500,200),(500,600)]
+# edge_mid_r = [(750,0),(750,400)]
+# edges=[edge_north_new, edge_south_new,edge_west_new, edge_east_new, edge_mid_l, edge_mid_c, edge_mid_r]
+
 pymunk_walls = []
 for edge in edges:
     pymunk_walls.append(Pymunk_Obstacle(pygame_display=pygame_display, pymunk_space=pymunk_space, radius=10, color=black, p=edge))
@@ -65,7 +75,7 @@ for edge in edges:
 def bot_fitness(pymunk_bot):
     collision_count = pymunk_bot.collision_counter
     dust_count = pymunk_bot.get_dust_count()
-    return dust_count / collision_count+1
+    return ((dust_count ** 2) / collision_count+1)
 
 # ------------- calling evolution --------------
 
