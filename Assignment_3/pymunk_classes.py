@@ -71,7 +71,7 @@ class Pymunk_Bot:
             for sensor in self.bot._sensors:
                 sensor.object_detected(self.bot._pymunk_position, verbose=False)
                 if sensor._dist_to_wall is not None:
-                    if sensor._dist_to_wall <= (self.radius + 10):
+                    if sensor._dist_to_wall <= (self.radius + 9):
                         # print("Collision detected!!!")
                         self.collision_counter += 1
                         break 
@@ -103,7 +103,7 @@ class Pymunk_Bot:
         return dust_count
 
     def get_fitness(self):
-        return ((self.get_dust_count() ** 2)/ (self.collision_counter + 1))
+        return (np.round((self.get_dust_count()*np.sqrt(self.get_dust_count())) / (np.sqrt(self.collision_counter) + 1), decimals=6))
 
     def draw(self):
         pygame.draw.circle(self.pygame_display, self.color, self.body.position, self.radius)
