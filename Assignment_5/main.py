@@ -16,6 +16,7 @@ white = (255, 255, 255)
 black = (0,0,0)
 pygame_display.fill(white)
 
+# CREATE WALLS - PURELY VISUAL, NO OTHER PURPOSE
 wall_thickness = 5
 w_offset = wall_thickness / 2 # w_offset is purely for visual purposes: makes walls fit perfectly to edge of screen
 wall_north = [(0+w_offset, 0+w_offset), (500-w_offset, 0+w_offset)]
@@ -28,17 +29,19 @@ wall_c3 = [(175,300),(175, 575)]
 wall_c4=[(340, 450),(340, 700)]
 walls = [wall_north, wall_south, wall_east, wall_west, wall_c1, wall_c2, wall_c3, wall_c4]
 
-beacon_A = Beacon(0+w_offset, 0+w_offset)
-beacon_B = Beacon(500-w_offset, 0+w_offset)
-beacon_C = Beacon(0+w_offset, 150)
-beacon_D = Beacon(300, 150)
-beacon_E = Beacon(175, 300)
-beacon_F = Beacon(500-w_offset, 300)
-beacon_G = Beacon(175, 575)
-beacon_H = Beacon(340, 450)
-beacon_I = Beacon(0+w_offset, 700-w_offset)
-beacon_J = Beacon(340, 700-w_offset)
-beacon_K = Beacon(500-w_offset, 700-w_offset)
+# CREATE INSTANCES OF BEACON CLASS IN sensor_model.py
+beacon_radius=100
+beacon_A = Beacon(0+w_offset, 0+w_offset, beacon_radius)
+beacon_B = Beacon(500-w_offset, 0+w_offset, beacon_radius)
+beacon_C = Beacon(0+w_offset, 150, beacon_radius)
+beacon_D = Beacon(300, 150, beacon_radius)
+beacon_E = Beacon(175, 300, beacon_radius)
+beacon_F = Beacon(500-w_offset, 300, beacon_radius)
+beacon_G = Beacon(175, 575, beacon_radius)
+beacon_H = Beacon(340, 450, beacon_radius)
+beacon_I = Beacon(0+w_offset, 700-w_offset, beacon_radius)
+beacon_J = Beacon(340, 700-w_offset, beacon_radius)
+beacon_K = Beacon(500-w_offset, 700-w_offset, beacon_radius)
 beacons = [beacon_A, beacon_B, beacon_C, beacon_D, beacon_E, beacon_F, beacon_G, beacon_H, beacon_I, beacon_J, beacon_K]
 
 robot = Robot(pygame_display=pygame_display,
