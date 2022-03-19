@@ -3,8 +3,8 @@ import numpy as np
 
 class Robot:
     """
-    Robot class for a differential drive robot in a pygame simulation. Includes
-        - a function (with supporting functions) for calculating movement, given keyboard 
+    Class for a differential drive robot in a pygame simulation. Includes
+        - a function (with supporting functions) for calculating movement, given keyboard inputs
         - a function to draw the robot to a provided pygame display
     """
     def __init__(self,
