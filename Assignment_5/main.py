@@ -50,7 +50,7 @@ robot = Robot(pygame_display=pygame_display,
               position=(60,60,0),
               distance_between_wheels=bot_radius*2,
               acceleration=10,
-              angular_acceleration=1,
+              angular_acceleration=0.5,
               FPS=FPS,
               current_time=0)
 
