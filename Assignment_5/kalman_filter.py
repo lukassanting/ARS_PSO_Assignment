@@ -1,8 +1,5 @@
 import numpy as np
 
-matrix_A = np.identity(3)
-matrix_C = np.identity(3)
-
 def matrix_B(delta_t, mean_t_minus_one):
     theta = mean_t_minus_one[2][0]
     return np.array([[delta_t*np.cos(theta), 0], [delta_t*np.sin(theta), 0], [0, delta_t]])
@@ -21,6 +18,10 @@ def Kalman_filter(mean_t_minus_1, cov_matrix_t_minus_1, u_t, z_t, delta_t):
     assert mean_t_minus_1.shape == (3,1), 'Shape of mean vector must be (3,1)'
     assert u_t.shape == (2,1), 'Shape of control vector must be (2,1)'
     assert z_t.shape == (3,1), 'Shape of measurement vector must be (3,1)'
+
+    matrix_A = np.identity(3)
+    matrix_C = np.identity(3)
+    
     mean_bar_t = np.dot(matrix_A,mean_t_minus_1) + np.dot(matrix_B(delta_t=delta_t, mean_t_minus_one=mean_t_minus_1), u_t)
     cov_matrix_bar_t = np.matmul(matrix_A, np.matmul(cov_matrix_t_minus_1, np.transpose(matrix_A))) + motion_model_noise_covariance_matrix_R()
 
