@@ -41,8 +41,11 @@ class Robot:
     def draw(self):
         pygame.draw.circle(self._display, self._color, (self._pos[0], self._pos[1]), self._radius)
 
-    def draw_track(self):
-        pygame.draw.lines(self._display, self._color, False, self._positions)
+    def draw_track(self, color: pygame.Color):
+        pygame.draw.lines(self._display, color, False, self._positions)
+
+    def draw_active_beacon(self, beacon_pos):
+        pygame.draw.line(self._display, (0, 0, 255), (self._pos[0], self._pos[1]), beacon_pos)
 
     # ---------------------------------------------------------------------------------
     # Code for draw_dashed_line() and draw_dashed_lines() copied from user Rabbid76 on StackOverflow:

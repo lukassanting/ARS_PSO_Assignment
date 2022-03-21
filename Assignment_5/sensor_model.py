@@ -33,11 +33,15 @@ class Beacon:
     def active(self):
         return self._active
 
+    @property
+    def pos(self):
+        return (self.x, self.y)
+
 def verbose_all_beacons(beacons: list) -> None:
     for b in beacons:
         print(b)
 
-def nr_active_beacons(beacons: List[Beacon], x: float, y: float) -> list:
+def nr_active_beacons(beacons: List[Beacon], x: float, y: float, theta: float) -> list:
     '''
         returns the beacons that are active. A beacon is considered active when the robot center
         position is inside the range circle of the beacon (the laser beam reaches the center of the robot)
@@ -50,7 +54,8 @@ def nr_active_beacons(beacons: List[Beacon], x: float, y: float) -> list:
     for b in beacons:
         # find euclidean distance betweeen beacon and center of robot
         robot_pos, beacon_pos = np.array((x, y)), np.array((b.x, b.y))
-        dist = np.linalg.norm(robot_pos - beacon_pos)
+        print(robot_pos.shape, beacon_pos.shape)
+        dist = np.linalg.norm(robot_pos[:1] - beacon_pos)
         print(f'Distance from robot: {dist}')
 
         # check if dist is in beacon range
@@ -73,7 +78,7 @@ def trilateration(robot_pos: tuple, beacons: list) -> tuple:
     # calculate distance of robot from eaach beam (the distance corresponds to signal strength from the beamer)
     beam_robot_dist = []
     for b in beacons:
-        beam_robot_dist.append(np.linalg.norm(np.array([robot_pos]) - np.array((b.x, b.y))))
+        beam_robot_dist.append(np.linalg.norm(np.array(robot_pos[:2]) - np.array((b.x, b.y))))
 
     # trilateration algorithm
     A = 2 * beacons[1].x - 2 * beacons[0].x
@@ -88,7 +93,7 @@ def trilateration(robot_pos: tuple, beacons: list) -> tuple:
 
     return x, y
 
-
+'''
 #### TESTING ####
 
 NR_BEACONS = 5
@@ -124,3 +129,4 @@ for b in beacons:
 
 plt.scatter(bot_pos[0], bot_pos[1], c='r')
 plt.show()
+'''
