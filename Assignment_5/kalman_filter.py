@@ -23,16 +23,20 @@ def Kalman_filter(mean_t_minus_1, cov_matrix_t_minus_1, u_t, z_t, delta_t):
     matrix_C = np.identity(3)
 
     mean_bar_t = np.dot(matrix_A, mean_t_minus_1) + np.dot(matrix_B(delta_t=delta_t, mean_t_minus_one=mean_t_minus_1), u_t)
-    cov_matrix_bar_t = np.matmul(matrix_A, np.matmul(cov_matrix_t_minus_1, np.transpose(matrix_A))) + motion_model_noise_covariance_matrix_R()
+    cov_matrix_bar_t = np.matmul(matrix_A, 
+                            np.matmul(cov_matrix_t_minus_1, np.transpose(matrix_A))
+                        ) + motion_model_noise_covariance_matrix_R()
 
     if z_t is None:
         # if no measurement is received, return values without correction
         return mean_bar_t, cov_matrix_bar_t
 
-    # the method will crash at the next step if ALL variances in matrices cov_matrix_t_minus_1, R, and Q are zero
-    # in the case all these quanties are zero, the position of the robot can be precisely computed from the last state and
-    # any additional control inputs and therefore no correction needs to be made - i.e. the algorithm can return
-    # mean_bar_t, cov_matrix_bar_t and would give the perfect position and cov_matrix_bar_t is a matrix with only zeros
+    # the method would crash at the next step if ALL variances in matrices R and Q are zero.
+    # In the case all these quanties are zero, the position of the robot can be precisely computed from the last state and
+    # any additional control inputs. Therefore no correction needs to be made - i.e. the algorithm can return
+    # mean_bar_t, cov_matrix_bar_t and would give the perfect position and cov_matrix_bar_t is identical to cov_matrix_bar_t_minus_1
+    # To prevent the method crashing, we are checking if calculation of k_t is algebraicly possible and return the uncorrected mean and
+    # covariance matrix if k_t can't be calculated.
 
     try: 
         # check if matrix in calculation of k_t is invertible
