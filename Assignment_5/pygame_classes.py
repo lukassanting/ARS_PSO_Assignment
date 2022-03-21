@@ -1,6 +1,7 @@
 import pygame
 import numpy as np
 import math
+from kalman_filter import Kalman_filter, initial_covariance_matrix
 
 class Robot:
     """
@@ -33,6 +34,9 @@ class Robot:
         self._vel_right = 0
         self._vel_left = 0
         self._positions = [(position[0], position[1])]
+        self._belief_positions = [(position[0], position[1])]
+        self._belief_angle = [position[2]]
+        self._belief_covariance_matrix = [initial_covariance_matrix]
 
     # ---------------------------------------------------------------------------------
     # --------------------------- DRAWING FUNCTIONS -----------------------------------
@@ -155,3 +159,35 @@ class Robot:
 
         if verbose:
             print(f'Updated R: {self._rot_radius}')
+
+    # ---------------------------------------------------------------------------------
+    # -------------------------- Kalman Filter functions -----------------------------------
+    # ---------------------------------------------------------------------------------
+
+    def update_beliefs(self, trilateration_pos, delta_t:float):
+        if trilateration_pos is not None:
+            if isinstance(trilateration_pos, tuple):
+                trilateration_pos = np.asarray(trilateration_pos)
+            trilateration_pos = trilateration_pos.reshape((3,1))
+        prior_belief = np.append(np.asarray(self._belief_positions[-1]), self._belief_angle[-1]).reshape((3,1))
+        u = np.array([(self._vel_left+self._vel_right)/2, self._rot_rate]).reshape((2,1))
+        pos, cov_matrix = Kalman_filter(
+                                    mean_t_minus_1=prior_belief,
+                                    cov_matrix_t_minus_1=initial_covariance_matrix(),
+                                    u_t=u,
+                                    z_t=trilateration_pos,
+                                    delta_t=delta_t
+                                    )
+        self._belief_positions.append(tuple(pos.flatten()[:2]))
+        self._belief_angle.append(pos.flatten()[2])
+        self._belief_covariance_matrix.append(cov_matrix)
+
+    def draw_elipse(self):
+        ellipse_boundaries = (
+                        self._belief_positions[-1][0], #left
+                        self._belief_positions[-1][1], #top
+                        100*np.diagonal(self._belief_covariance_matrix[-1])[0], #width, sclaed by 100 to make it better visible
+                        100*np.diagonal(self._belief_covariance_matrix[-1])[1] #height, sclaed by 100 to make it better visible
+                        )
+
+        pygame.draw.ellipse(surface=self._display, color=(169,169,169), rect=ellipse_boundaries, width = 1)

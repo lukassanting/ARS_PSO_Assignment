@@ -41,7 +41,7 @@ def verbose_all_beacons(beacons: list) -> None:
     for b in beacons:
         print(b)
 
-def nr_active_beacons(beacons: List[Beacon], x: float, y: float, theta: float) -> list:
+def nr_active_beacons(beacons: List[Beacon], x: float, y: float, theta: float, verbose=False) -> list:
     '''
         returns the beacons that are active. A beacon is considered active when the robot center
         position is inside the range circle of the beacon (the laser beam reaches the center of the robot)
@@ -54,9 +54,10 @@ def nr_active_beacons(beacons: List[Beacon], x: float, y: float, theta: float) -
     for b in beacons:
         # find euclidean distance betweeen beacon and center of robot
         robot_pos, beacon_pos = np.array((x, y)), np.array((b.x, b.y))
-        print(robot_pos.shape, beacon_pos.shape)
         dist = np.linalg.norm(robot_pos[:1] - beacon_pos)
-        print(f'Distance from robot: {dist}')
+        if verbose: 
+            print(robot_pos.shape, beacon_pos.shape)
+            print(f'Distance from robot: {dist}')
 
         # check if dist is in beacon range
         if dist <= b.radius:

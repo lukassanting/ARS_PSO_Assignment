@@ -4,20 +4,21 @@ def matrix_B(delta_t, mean_t_minus_one):
     theta = mean_t_minus_one[2][0]
     return np.array([[delta_t*np.cos(theta), 0], [delta_t*np.sin(theta), 0], [0, delta_t]])
 
-def initial_covariance_matrix(variance=0.0001):
+def initial_covariance_matrix(variance=0.01):
     return variance*np.identity(3)
 
 # change variance to small number instead of 0!!!
-def motion_model_noise_covariance_matrix_R(variance=0.0001):
+def motion_model_noise_covariance_matrix_R(variance=0.01):
     return variance*np.identity(3)
 
-def sensor_model_noise_covariance_matrix_Q(variance=0.0001):
+def sensor_model_noise_covariance_matrix_Q(variance=0.01):
     return variance*np.identity(3)
 
 def Kalman_filter(mean_t_minus_1, cov_matrix_t_minus_1, u_t, z_t, delta_t):
     assert mean_t_minus_1.shape == (3,1), 'Shape of mean vector must be (3,1)'
     assert u_t.shape == (2,1), 'Shape of control vector must be (2,1)'
-    assert z_t.shape == (3,1), 'Shape of measurement vector must be (3,1)'
+    if z_t is not None:
+        assert z_t.shape == (3,1), 'Shape of measurement vector must be (3,1) or None'
 
     matrix_A = np.identity(3)
     matrix_C = np.identity(3)
