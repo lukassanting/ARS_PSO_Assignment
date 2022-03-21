@@ -21,8 +21,8 @@ def Kalman_filter(mean_t_minus_1, cov_matrix_t_minus_1, u_t, z_t, delta_t):
 
     matrix_A = np.identity(3)
     matrix_C = np.identity(3)
-    
-    mean_bar_t = np.dot(matrix_A,mean_t_minus_1) + np.dot(matrix_B(delta_t=delta_t, mean_t_minus_one=mean_t_minus_1), u_t)
+
+    mean_bar_t = np.dot(matrix_A, mean_t_minus_1) + np.dot(matrix_B(delta_t=delta_t, mean_t_minus_one=mean_t_minus_1), u_t)
     cov_matrix_bar_t = np.matmul(matrix_A, np.matmul(cov_matrix_t_minus_1, np.transpose(matrix_A))) + motion_model_noise_covariance_matrix_R()
 
     if z_t is None:
@@ -34,16 +34,22 @@ def Kalman_filter(mean_t_minus_1, cov_matrix_t_minus_1, u_t, z_t, delta_t):
     # any additional control inputs and therefore no correction needs to be made - i.e. the algorithm can return
     # mean_bar_t, cov_matrix_bar_t and would give the perfect position and cov_matrix_bar_t is a matrix with only zeros
 
-    k_t = np.matmul(cov_matrix_bar_t, 
-            np.matmul(np.transpose(matrix_C), 
-                np.linalg.inv(
+    try: 
+        # check if matrix in calculation of k_t is invertible
+        inverse = np.linalg.inv(
                     np.matmul(matrix_C, 
                         np.matmul(cov_matrix_bar_t, 
                             np.transpose(matrix_C)
                         )
                     ) + sensor_model_noise_covariance_matrix_Q()
-                )
             )
+    except np.linalg.LinAlgError:
+        print('Matrix in calculation of k_t is non-invertible. This means that no noise is existent. Non-corrected values are returned.')
+        return mean_bar_t, cov_matrix_bar_t
+
+
+    k_t = np.matmul(cov_matrix_bar_t, 
+            np.matmul(np.transpose(matrix_C), inverse)
         )
     mean_t = mean_bar_t + np.dot(k_t, z_t-np.dot(matrix_C, mean_bar_t))
     cov_matrix_t = np.matmul(np.identity(3) - np.matmul(k_t, matrix_C), cov_matrix_bar_t)
