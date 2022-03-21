@@ -1,5 +1,6 @@
 import pygame
 import numpy as np
+import math
 
 class Robot:
     """
@@ -31,10 +32,52 @@ class Robot:
         self._time_step_size = 1 / FPS
         self._vel_right = 0
         self._vel_left = 0
+        self._positions = [(position[0], position[1])]
+
+    # ---------------------------------------------------------------------------------
+    # --------------------------- DRAWING FUNCTIONS -----------------------------------
+    # ---------------------------------------------------------------------------------
 
     def draw(self):
         pygame.draw.circle(self._display, self._color, (self._pos[0], self._pos[1]), self._radius)
 
+    def draw_track(self):
+        pygame.draw.lines(self._display, self._color, False, self._positions)
+
+    # ---------------------------------------------------------------------------------
+    # Code for draw_dashed_line() and draw_dashed_lines() copied from user Rabbid76 on StackOverflow:
+    # https://stackoverflow.com/questions/66943011/how-to-draw-a-dashed-curved-line-with-pygame?noredirect=1&lq=1
+    def draw_dashed_line(self, p1, p2, prev_line_len, dash_length=8):
+        dx, dy = p2[0]-p1[0], p2[1]-p1[1]
+        if dx == 0 and dy == 0:
+            return
+        dist = math.hypot(dx, dy)
+        dx /= dist
+        dy /= dist
+
+        step = dash_length*2
+        start=(int(prev_line_len) // step) * step
+        end=(int(prev_line_len + dist)// step+1) * step
+        for i in range(start, end, dash_length*2):
+            s = max(0, start-prev_line_len)
+            e = min(start-prev_line_len+dash_length, dist)
+            if s < e:
+                ps = p1[0] + dx * s, p1[1] + dy * s
+                pe = p1[0] + dx * e, p1[1] + dy * e
+                pygame.draw.line(self._display, self._color, pe, ps)
+
+    def draw_dashed_lines(self, points, dash_length=8):
+        line_len=0
+        for i in range(1, len(points)):
+            p1, p2 = points[i-1], points[i]
+            dist = math.hypot(p2[0]-p1[0], p2[1]-p1[1])
+            self.draw_dashed_line(p1, p2, line_len, dash_length)
+            line_len += dist
+    # ---------------------------------------------------------------------------------
+
+    # ---------------------------------------------------------------------------------
+    # -------------------------- MOVEMENT FUNCTIONS -----------------------------------
+    # ---------------------------------------------------------------------------------
     def move(self, key, time_elapsed, verbose=False):
         if key is not None:
             if key == pygame.K_w: self.accelerate(verbose)
@@ -49,7 +92,7 @@ class Robot:
         deriv_y = (vel_forward) * np.sin(self._pos[2])
         deriv_theta = 0.1 * (1 / self._l) * (self._vel_right - self._vel_left)
         self._pos = self._pos + time_elapsed * np.array([deriv_x, deriv_y, deriv_theta])
-
+        self._positions.append((self._pos[0], self._pos[1]))
         self._time += time_elapsed
 
     def accelerate(self, verbose=False):

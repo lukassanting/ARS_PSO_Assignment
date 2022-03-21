@@ -29,7 +29,7 @@ wall_c3 = [(175,300),(175, 575)]
 wall_c4=[(340, 450),(340, 700)]
 walls = [wall_north, wall_south, wall_east, wall_west, wall_c1, wall_c2, wall_c3, wall_c4]
 
-# CREATE INSTANCES OF BEACON CLASS IN sensor_model.py
+# CREATE INSTANCES OF BEACON CLASS IN sensor_model.py - POSITIONED AT ENDS OF WALLS
 beacon_radius=100
 beacon_A = Beacon(0+w_offset, 0+w_offset, beacon_radius)
 beacon_B = Beacon(500-w_offset, 0+w_offset, beacon_radius)
@@ -66,6 +66,8 @@ def simulation(display, bot, walls, beacons, FPS=50):
 
         display.fill(white)
         bot.draw()
+        bot.draw_track()
+
         for wall in walls:
             pygame.draw.line(display, black, wall[0], wall[1], wall_thickness)
         for beacon in beacons:
