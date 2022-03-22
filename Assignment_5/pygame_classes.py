@@ -36,7 +36,7 @@ class Robot:
         self._positions = [(position[0], position[1])]
         self._belief_positions = [(position[0], position[1])]
         self._belief_angle = [position[2]]
-        self._belief_covariance_matrix = [initial_covariance_matrix]
+        self._belief_covariance_matrix = [initial_covariance_matrix()]
         self._change_in_theta = 0
         self._ellipses = []
 
@@ -179,7 +179,7 @@ class Robot:
         u = np.array([(self._vel_left+self._vel_right)/2, self._rot_rate]).reshape((2,1))
         pos, cov_matrix = Kalman_filter(
                                     mean_t_minus_1=prior_belief,
-                                    cov_matrix_t_minus_1=initial_covariance_matrix(),
+                                    cov_matrix_t_minus_1=self._belief_covariance_matrix[-1],
                                     u_t=u,
                                     z_t=trilateration_pos,
                                     delta_t=delta_t
@@ -198,7 +198,7 @@ class Robot:
         u = np.array([(self._vel_left+self._vel_right)/2, self._change_in_theta]).reshape((2,1))
         pos, cov_matrix = KF_no_rot_rate(
                                     mean_t_minus_1=prior_belief,
-                                    cov_matrix_t_minus_1=initial_covariance_matrix(),
+                                    cov_matrix_t_minus_1=self._belief_covariance_matrix[-1],
                                     u_t=u,
                                     z_t=trilateration_pos,
                                     delta_t=delta_t
@@ -208,8 +208,8 @@ class Robot:
         self._belief_covariance_matrix.append(cov_matrix)
 
     def generate_ellipse(self):
-        width = 1000*np.diagonal(self._belief_covariance_matrix[-1])[0] # scaled by 1000 to make it better visible
-        height = 1000*np.diagonal(self._belief_covariance_matrix[-1])[1] # scaled by 1000 to make it better visible
+        width = 100*np.diagonal(self._belief_covariance_matrix[-1])[0] # scaled by 1000 to make it better visible
+        height = 100*np.diagonal(self._belief_covariance_matrix[-1])[1] # scaled by 1000 to make it better visible
         left = self._belief_positions[-1][0]-width/2 # subtracting width/2 to center the ellipse at the center of the robot
         top = self._belief_positions[-1][1]-height/2 # subtracting height/2 to center the ellipse at the center of the robot
         ellipse_boundaries = (left, top, width, height)
