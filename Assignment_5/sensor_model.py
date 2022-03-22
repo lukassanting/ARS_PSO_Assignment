@@ -54,16 +54,15 @@ def nr_active_beacons(beacons: List[Beacon], x: float, y: float, theta: float, v
     for b in beacons:
         # find euclidean distance betweeen beacon and center of robot
         robot_pos, beacon_pos = np.array((x, y)), np.array((b.x, b.y))
-        dist = np.linalg.norm(robot_pos[:1] - beacon_pos)
-        if verbose: 
+        # dist = np.linalg.norm(robot_pos[:1] - beacon_pos)
+        dist = np.linalg.norm(robot_pos - beacon_pos)
+        if verbose:
             print(robot_pos.shape, beacon_pos.shape)
             print(f'Distance from robot: {dist}')
-
         # check if dist is in beacon range
         if dist <= b.radius:
             active_beacons.append(b)
             b._active = 1
-
     return active_beacons
 
 # reference: https://www.101computing.net/cell-phone-trilateration-algorithm/
@@ -76,7 +75,7 @@ def trilateration(robot_pos: tuple, beacons: list) -> tuple:
 
     assert len(beacons) == 3, "provide at least 3 beacons"
 
-    # calculate distance of robot from eaach beam (the distance corresponds to signal strength from the beamer)
+    # calculate distance of robot from each beam (the distance corresponds to signal strength from the beamer)
     beam_robot_dist = []
     for b in beacons:
         beam_robot_dist.append(np.linalg.norm(np.array(robot_pos[:2]) - np.array((b.x, b.y))))
