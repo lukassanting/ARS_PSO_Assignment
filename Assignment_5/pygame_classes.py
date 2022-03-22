@@ -197,7 +197,8 @@ class Robot:
         if trilateration_pos is not None:
             if isinstance(trilateration_pos, tuple):
                 trilateration_pos = np.asarray(trilateration_pos)
-            trilateration_pos = trilateration_pos.reshape((3,1))
+            if trilateration_pos.shape != (3,1):
+                trilateration_pos = trilateration_pos.reshape((3,1))
         prior_belief = np.append(np.asarray(self._belief_positions[-1]), self._belief_angle[-1]).reshape((3,1))
         u = np.array([self._belief_vel, self._change_in_theta]).reshape((2,1))
         pos, cov_matrix = KF_no_rot_rate(
