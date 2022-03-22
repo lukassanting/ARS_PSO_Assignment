@@ -82,10 +82,7 @@ def simulation(display, bot: Robot, walls, beacons: List[Beacon], FPS=50, verbos
         if len(active_beacons) >= 3:
             if verbose: print(f'At least 3 active beams found. Performing trilateration...')
             beam_robot_dist = trilateration(bot._pos, active_beacons[:3])
-            trilateral_pos_for_kalman = np.concatenate((np.asarray(beam_robot_dist), bot._pos[2]), axis=None)
-            print(f'trialteral_pos_for_kalman: {trilateral_pos_for_kalman}')
             trilateral_pos_for_kalman = np.concatenate((np.asarray(beam_robot_dist), bot._pos[2]), axis=None)+np.random.normal()
-            print(f'trialteral_pos_for_kalman with noise: {trilateral_pos_for_kalman}')
 
             bot.draw_track((0, 0, 255))
 
