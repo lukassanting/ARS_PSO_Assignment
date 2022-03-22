@@ -1,3 +1,5 @@
+# Implemented by Lukas Santing, Edited by Thomas Bahne and Foti Kerkeshi
+
 import pygame
 import numpy as np
 import math

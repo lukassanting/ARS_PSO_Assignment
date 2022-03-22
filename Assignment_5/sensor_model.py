@@ -1,3 +1,5 @@
+# Implemented by Foti Kerkeshi, Edited by Thomas Bahne and Lukas Santing
+
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import List

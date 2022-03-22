@@ -1,3 +1,5 @@
+# Implemented by Thomas Bahne, Edited by Lukas Santing and Foti Kerkeshi
+
 import numpy as np
 
 def matrix_B(delta_t, mean_t_minus_one):

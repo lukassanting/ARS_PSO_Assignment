@@ -1,3 +1,5 @@
+# Implemented by Lukas Santing, Edited by Thomas Bahne and Foti Kerkeshi
+
 import pygame
 from pygame_classes import *
 from sensor_model import *
