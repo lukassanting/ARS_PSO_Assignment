@@ -93,13 +93,13 @@ class Robot:
     # ---------------------------------------------------------------------------------
     # -------------------------- MOVEMENT FUNCTIONS -----------------------------------
     # ---------------------------------------------------------------------------------
-    def move(self, key, time_elapsed, noisy_velocity=False, noisy_angle=False, verbose=False):
+    def move(self, key, time_elapsed, noisy_velocity=False, noisy_angles=False, verbose=False):
         self._change_in_theta = 0
         if key is not None:
             if key == pygame.K_w: self.accelerate(add_noise=noisy_velocity, verbose=verbose)
             if key == pygame.K_s: self.decelerate(add_noise=noisy_velocity, verbose=verbose)
-            if key == pygame.K_a: self.increase_angle(add_noise=noisy_angle, verbose=verbose)
-            if key == pygame.K_d: self.decrease_angle(add_noise=noisy_angle, verbose=verbose)
+            if key == pygame.K_a: self.increase_angle(add_noise=noisy_angles, verbose=verbose)
+            if key == pygame.K_d: self.decrease_angle(add_noise=noisy_angles, verbose=verbose)
             if key == pygame.K_x: self.stop(verbose=verbose)
             if key == pygame.K_r: self.reset(verbose=verbose)
 

@@ -70,7 +70,7 @@ def simulation(display, bot: Robot, walls, beacons: List[Beacon], FPS=50,
                 return  # exit out of the function call to end the display
             if event.type == pygame.KEYDOWN:
                 key = event.key
-        bot.move(key=key, time_elapsed=1/FPS, verbose=False)
+        bot.move(key=key, time_elapsed=1/FPS, noisy_velocity=add_noise_to_velocity, noisy_angles=add_noise_to_angle, verbose=False)
 
         display.fill(white)
         bot.draw()
@@ -91,7 +91,9 @@ def simulation(display, bot: Robot, walls, beacons: List[Beacon], FPS=50,
             beam_robot_dist = trilateration(bot._pos, active_beacons[:3])
 
             if add_noise_to_sensors:
-                trilateral_pos_for_kalman = np.concatenate((np.asarray(beam_robot_dist), bot._pos[2]), axis=None)+np.random.normal()
+                noisy_angle = bot._pos[2]+np.random.normal(scale=0.1)
+                noisy_position = np.asarray(beam_robot_dist)+np.random.normal(scale=3)
+                trilateral_pos_for_kalman = np.concatenate((noisy_position, noisy_angle), axis=None)
             else: 
                 trilateral_pos_for_kalman = np.concatenate((np.asarray(beam_robot_dist), bot._pos[2]), axis=None)
 
