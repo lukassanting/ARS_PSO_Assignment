@@ -30,7 +30,7 @@ wall_c4=[(340, 450),(340, 700)]
 walls = [wall_north, wall_south, wall_east, wall_west, wall_c1, wall_c2, wall_c3, wall_c4]
 
 # CREATE INSTANCES OF BEACON CLASS IN sensor_model.py - POSITIONED AT ENDS OF WALLS
-beacon_radius = 150
+beacon_radius = 180
 beacon_A = Beacon(0+w_offset, 0+w_offset, beacon_radius)
 beacon_B = Beacon(500-w_offset, 0+w_offset, beacon_radius)
 beacon_C = Beacon(0+w_offset, 150, beacon_radius)
@@ -69,7 +69,7 @@ def simulation(display, bot: Robot, walls, beacons: List[Beacon], FPS=50, verbos
         bot.draw()
 
         # draw active beacons
-        active_beacons = nr_active_beacons(beacons, *bot._pos)
+        active_beacons = nr_active_beacons(beacons, *bot._pos, verbose=False)
         for act_b in active_beacons:
             bot.draw_active_beacon(act_b.pos)
         if verbose:
