@@ -74,9 +74,13 @@ def KF_no_rot_rate(mean_t_minus_1, cov_matrix_t_minus_1, u_t, z_t, delta_t):
                             np.matmul(cov_matrix_t_minus_1, np.transpose(matrix_A))
                         ) + motion_model_noise_covariance_matrix_R()
 
+    updated_line = False
+
     if z_t is None:
         # if no measurement is received, return values without correction
-        return mean_bar_t, cov_matrix_bar_t
+        return mean_bar_t, cov_matrix_bar_t, updated_line
+    updated_line = True
+
 
     # the method would crash at the next step if ALL variances in matrices R and Q are zero.
     # In the case all these quanties are zero, the position of the robot can be precisely computed from the last state and
@@ -104,7 +108,7 @@ def KF_no_rot_rate(mean_t_minus_1, cov_matrix_t_minus_1, u_t, z_t, delta_t):
         )
     mean_t = mean_bar_t + np.dot(k_t, z_t-np.dot(matrix_C, mean_bar_t))
     cov_matrix_t = np.matmul(np.identity(3) - np.matmul(k_t, matrix_C), cov_matrix_bar_t)
-    return mean_t, cov_matrix_t
+    return mean_t, cov_matrix_t, updated_line
 
 # code for testing purposes
 

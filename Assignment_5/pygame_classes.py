@@ -40,6 +40,7 @@ class Robot:
         self._belief_covariance_matrix = [initial_covariance_matrix()]
         self._change_in_theta = 0
         self._ellipses = []
+        self._update_lines = []
 
     # ---------------------------------------------------------------------------------
     # --------------------------- DRAWING FUNCTIONS -----------------------------------
@@ -50,6 +51,10 @@ class Robot:
 
     def draw_track(self, color: pygame.Color):
         pygame.draw.lines(self._display, color, False, self._positions)
+
+    def draw_updated_lines(self):
+        for (old, new) in self._update_lines:
+            pygame.draw.line(self._display, (0, 200, 15), old, new)
 
     def draw_active_beacon(self, beacon_pos):
         pygame.draw.line(self._display, (0, 0, 255), (self._pos[0], self._pos[1]), beacon_pos)
@@ -200,13 +205,15 @@ class Robot:
             trilateration_pos = trilateration_pos.reshape((3,1))
         prior_belief = np.append(np.asarray(self._belief_positions[-1]), self._belief_angle[-1]).reshape((3,1))
         u = np.array([self._belief_vel, self._change_in_theta]).reshape((2,1))
-        pos, cov_matrix = KF_no_rot_rate(
+        pos, cov_matrix, update_line = KF_no_rot_rate(
                                     mean_t_minus_1=prior_belief,
                                     cov_matrix_t_minus_1=self._belief_covariance_matrix[-1],
                                     u_t=u,
                                     z_t=trilateration_pos,
                                     delta_t=delta_t
                                     )
+        if update_line:
+            self._update_lines.append([self._belief_positions[-1], pos.flatten()[:2]])
         self._belief_positions.append(tuple(pos.flatten()[:2]))
         self._belief_angle.append(pos.flatten()[2])
         self._belief_covariance_matrix.append(cov_matrix)
