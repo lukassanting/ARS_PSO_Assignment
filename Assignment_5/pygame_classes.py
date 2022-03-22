@@ -18,7 +18,8 @@ class Robot:
                  acceleration: int = 10,
                  angular_acceleration: int = 5,
                  FPS: float = 1 / 50,
-                 current_time: int = 0):
+                 current_time: int = 0,
+                 noisy_velocity_scale: float = 1):
         self._acc = acceleration
         self._angular_acc = angular_acceleration
         self._color = color
@@ -41,6 +42,7 @@ class Robot:
         self._change_in_theta = 0
         self._ellipses = []
         self._update_lines = []
+        self._noisy_velocity_scale = noisy_velocity_scale
 
     # ---------------------------------------------------------------------------------
     # --------------------------- DRAWING FUNCTIONS -----------------------------------
@@ -113,8 +115,8 @@ class Robot:
 
     def accelerate(self, add_noise=False, verbose=False):
         if add_noise:
-            self._vel_right = np.round(self._vel_right + self._acc + np.random.normal(), decimals=8)
-            self._vel_left = np.round(self._vel_left + self._acc + np.random.normal(), decimals=8)
+            self._vel_right = np.round(self._vel_right + self._acc + np.random.normal(scale=self._noisy_velocity_scale), decimals=8)
+            self._vel_left = np.round(self._vel_left + self._acc + np.random.normal(scale=self._noisy_velocity_scale), decimals=8)
         else:
             self._vel_right = np.round(self._vel_right + self._acc, decimals=8)
             self._vel_left = np.round(self._vel_left + self._acc, decimals=8)

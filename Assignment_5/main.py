@@ -16,9 +16,13 @@ white = (255, 255, 255)
 black = (0,0,0)
 pygame_display.fill(white)
 
+# !! CUSTOMISABLE VARIABLES - WHERE DO YOU WANT TO ADD NOISE & HOW MUCH?
 noisy_velocity = True
+noisy_velocity_scale = 1    # default = 1
 noisy_angles = True
+noisy_angle_scale = 0.1    # default = 0.1
 noisy_sensors = True
+noisy_sensor_scale = 3    # default = 3
 
 # CREATE WALLS - PURELY VISUAL, NO OTHER PURPOSE
 wall_thickness = 5
@@ -56,7 +60,8 @@ robot = Robot(pygame_display=pygame_display,
               acceleration=10,
               angular_acceleration=0.5,
               FPS=FPS,
-              current_time=0)
+              current_time=0,
+              noisy_velocity_scale=1)
 
 def simulation(display, bot: Robot, walls, beacons: List[Beacon], FPS=50, 
                 add_noise_to_velocity=False,
@@ -91,16 +96,14 @@ def simulation(display, bot: Robot, walls, beacons: List[Beacon], FPS=50,
             beam_robot_dist = trilateration(bot._pos, active_beacons[:3])
 
             if add_noise_to_sensors:
-                noisy_angle = bot._pos[2]+np.random.normal(scale=0.1)
-                noisy_position = np.asarray(beam_robot_dist)+np.random.normal(scale=3)
+                noisy_angle = bot._pos[2]+np.random.normal(scale=noisy_angle_scale)
+                noisy_position = np.asarray(beam_robot_dist)+np.random.normal(scale=noisy_sensor_scale)
                 trilateral_pos_for_kalman = np.concatenate((noisy_position, noisy_angle), axis=None)
             else: 
                 trilateral_pos_for_kalman = np.concatenate((np.asarray(beam_robot_dist), bot._pos[2]), axis=None)
 
-            bot.draw_track((0, 0, 255))
+        bot.draw_track((0, 0, 0))
 
-        else:
-            bot.draw_track((0, 0, 0))
         
         bot.update_beliefs_no_rot_rate(trilateration_pos=trilateral_pos_for_kalman, delta_t=1/FPS)
         bot.draw_dashed_lines(points=bot._belief_positions, dash_length=4)
