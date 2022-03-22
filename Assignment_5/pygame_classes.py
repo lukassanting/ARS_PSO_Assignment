@@ -33,6 +33,7 @@ class Robot:
         self._time_step_size = 1 / FPS
         self._vel_right = 0
         self._vel_left = 0
+        self._belief_vel = 0
         self._positions = [(position[0], position[1])]
         self._belief_positions = [(position[0], position[1])]
         self._belief_angle = [position[2]]
@@ -106,8 +107,9 @@ class Robot:
         self._time += time_elapsed
 
     def accelerate(self, verbose=False):
-        self._vel_right = np.round(self._vel_right + self._acc, decimals=8)
-        self._vel_left = np.round(self._vel_left + self._acc, decimals=8)
+        self._belief_vel = np.round(self._belief_vel + self._acc, decimals=8)
+        self._vel_right = np.round(self._vel_right + self._acc + np.random.normal(), decimals=8)
+        self._vel_left = np.round(self._vel_left + self._acc + np.random.normal(), decimals=8)
         self.update_rotate_rate()
         self.update_rotate_radius(verbose)
         if verbose:
@@ -115,8 +117,9 @@ class Robot:
                 f'Accelerating right: {self._vel_right}, Accelerating left: {self._vel_left}, rotation rate: {self._rot_rate}, rotation radius: {self._rot_radius}')
 
     def decelerate(self, verbose=False):
-        self._vel_right = np.round(self._vel_right - self._acc, decimals=8)
-        self._vel_left = np.round(self._vel_left - self._acc, decimals=8)
+        self._belief_vel = np.round(self._belief_vel - self._acc, decimals=8)
+        self._vel_right = np.round(self._vel_right - self._acc + np.random.normal(), decimals=8)
+        self._vel_left = np.round(self._vel_left - self._acc + np.random.normal(), decimals=8)
         self.update_rotate_rate()
         self.update_rotate_radius(verbose)
         if verbose:
@@ -136,6 +139,7 @@ class Robot:
             print(f'Decreasing angular position: {self._pos[2]}')
 
     def stop(self, verbose=False):
+        self._belief_vel = 0
         self._vel_right = 0
         self._vel_left = 0
         self.update_rotate_rate()
@@ -176,7 +180,7 @@ class Robot:
             trilateration_pos = trilateration_pos.reshape((3,1))
         prior_belief = np.append(np.asarray(self._belief_positions[-1]), self._belief_angle[-1]).reshape((3,1))
         print(f'rotation rate is {self._rot_rate}')
-        u = np.array([(self._vel_left+self._vel_right)/2, self._rot_rate]).reshape((2,1))
+        u = np.array([self._belief_vel, self._rot_rate]).reshape((2,1))
         pos, cov_matrix = Kalman_filter(
                                     mean_t_minus_1=prior_belief,
                                     cov_matrix_t_minus_1=self._belief_covariance_matrix[-1],
@@ -195,7 +199,7 @@ class Robot:
                 trilateration_pos = np.asarray(trilateration_pos)
             trilateration_pos = trilateration_pos.reshape((3,1))
         prior_belief = np.append(np.asarray(self._belief_positions[-1]), self._belief_angle[-1]).reshape((3,1))
-        u = np.array([(self._vel_left+self._vel_right)/2, self._change_in_theta]).reshape((2,1))
+        u = np.array([self._belief_vel, self._change_in_theta]).reshape((2,1))
         pos, cov_matrix = KF_no_rot_rate(
                                     mean_t_minus_1=prior_belief,
                                     cov_matrix_t_minus_1=self._belief_covariance_matrix[-1],

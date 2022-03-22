@@ -13,6 +13,7 @@ def initial_covariance_matrix(variance=0.001):
 
 # change variance to small number instead of 0!!!
 def motion_model_noise_covariance_matrix_R(variance=0.001):
+    # return np.array([[0.001, 0, 0],[0, 0.003, 0],[0, 0, 0.001]])
     return variance*np.identity(3)
 
 def sensor_model_noise_covariance_matrix_Q(variance=0.001):
@@ -72,7 +73,6 @@ def KF_no_rot_rate(mean_t_minus_1, cov_matrix_t_minus_1, u_t, z_t, delta_t):
     cov_matrix_bar_t = np.matmul(matrix_A, 
                             np.matmul(cov_matrix_t_minus_1, np.transpose(matrix_A))
                         ) + motion_model_noise_covariance_matrix_R()
-    print(f'Diagonal of cov_matrix: {np.diagonal(cov_matrix_bar_t)}')
 
     if z_t is None:
         # if no measurement is received, return values without correction
