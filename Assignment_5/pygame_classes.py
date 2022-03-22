@@ -93,15 +93,15 @@ class Robot:
     # ---------------------------------------------------------------------------------
     # -------------------------- MOVEMENT FUNCTIONS -----------------------------------
     # ---------------------------------------------------------------------------------
-    def move(self, key, time_elapsed, verbose=False):
+    def move(self, key, time_elapsed, noisy_velocity=False, noisy_angle=False, verbose=False):
         self._change_in_theta = 0
         if key is not None:
-            if key == pygame.K_w: self.accelerate(verbose)
-            if key == pygame.K_s: self.decelerate(verbose)
-            if key == pygame.K_a: self.increase_angle(verbose)
-            if key == pygame.K_d: self.decrease_angle(verbose)
-            if key == pygame.K_x: self.stop(verbose)
-            if key == pygame.K_r: self.reset(verbose)
+            if key == pygame.K_w: self.accelerate(add_noise=noisy_velocity, verbose=verbose)
+            if key == pygame.K_s: self.decelerate(add_noise=noisy_velocity, verbose=verbose)
+            if key == pygame.K_a: self.increase_angle(add_noise=noisy_angle, verbose=verbose)
+            if key == pygame.K_d: self.decrease_angle(add_noise=noisy_angle, verbose=verbose)
+            if key == pygame.K_x: self.stop(verbose=verbose)
+            if key == pygame.K_r: self.reset(verbose=verbose)
 
         vel_forward = np.round((self._vel_right + self._vel_left) / 2, decimals=8)
         deriv_x = (vel_forward) * np.cos(self._pos[2])
@@ -111,34 +111,50 @@ class Robot:
         self._positions.append((self._pos[0], self._pos[1]))
         self._time += time_elapsed
 
-    def accelerate(self, verbose=False):
+    def accelerate(self, add_noise=False, verbose=False):
+        if add_noise:
+            self._vel_right = np.round(self._vel_right + self._acc + np.random.normal(), decimals=8)
+            self._vel_left = np.round(self._vel_left + self._acc + np.random.normal(), decimals=8)
+        else:
+            self._vel_right = np.round(self._vel_right + self._acc, decimals=8)
+            self._vel_left = np.round(self._vel_left + self._acc, decimals=8)
+
         self._belief_vel = np.round(self._belief_vel + self._acc, decimals=8)
-        self._vel_right = np.round(self._vel_right + self._acc + np.random.normal(), decimals=8)
-        self._vel_left = np.round(self._vel_left + self._acc + np.random.normal(), decimals=8)
         self.update_rotate_rate()
         self.update_rotate_radius(verbose)
         if verbose:
             print(
                 f'Accelerating right: {self._vel_right}, Accelerating left: {self._vel_left}, rotation rate: {self._rot_rate}, rotation radius: {self._rot_radius}')
 
-    def decelerate(self, verbose=False):
+    def decelerate(self, add_noise=False, verbose=False):
+        if add_noise:
+            self._vel_right = np.round(self._vel_right - self._acc + np.random.normal(), decimals=8)
+            self._vel_left = np.round(self._vel_left - self._acc + np.random.normal(), decimals=8)
+        else:
+            self._vel_right = np.round(self._vel_right - self._acc, decimals=8)
+            self._vel_left = np.round(self._vel_left - self._acc, decimals=8)
+
         self._belief_vel = np.round(self._belief_vel - self._acc, decimals=8)
-        self._vel_right = np.round(self._vel_right - self._acc + np.random.normal(), decimals=8)
-        self._vel_left = np.round(self._vel_left - self._acc + np.random.normal(), decimals=8)
         self.update_rotate_rate()
         self.update_rotate_radius(verbose)
         if verbose:
             print(
                 f'Decelerating right: {self._vel_right}, Decelerating left: {self._vel_left}, rotation rate: {self._rot_rate}, rotation radius: {self._rot_radius}')
 
-    def increase_angle(self, verbose=False):
-        self._pos[2] += self._angular_acc
+    def increase_angle(self, add_noise=False, verbose=False):
+        if add_noise:
+            self._pos[2] += self._angular_acc+np.random.normal(scale=0.01)
+        else:
+            self._pos[2] += self._angular_acc
         self._change_in_theta += self._angular_acc
         if verbose:
             print(f'Increasing angular position: {self._pos[2]}')
 
-    def decrease_angle(self, verbose=False):
-        self._pos[2] -= self._angular_acc
+    def decrease_angle(self, add_noise=False, verbose=False):
+        if add_noise:
+            self._pos[2] -= self._angular_acc+np.random.normal(scale=0.01)
+        else:
+            self._pos[2] -= self._angular_acc
         self._change_in_theta -= self._angular_acc
         if verbose:
             print(f'Decreasing angular position: {self._pos[2]}')

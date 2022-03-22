@@ -16,6 +16,10 @@ white = (255, 255, 255)
 black = (0,0,0)
 pygame_display.fill(white)
 
+noisy_velocity = True
+noisy_angles = True
+noisy_sensors = True
+
 # CREATE WALLS - PURELY VISUAL, NO OTHER PURPOSE
 wall_thickness = 5
 w_offset = wall_thickness / 2 # w_offset is purely for visual purposes: makes walls fit perfectly to edge of screen
@@ -54,7 +58,10 @@ robot = Robot(pygame_display=pygame_display,
               FPS=FPS,
               current_time=0)
 
-def simulation(display, bot: Robot, walls, beacons: List[Beacon], FPS=50, verbose=False):
+def simulation(display, bot: Robot, walls, beacons: List[Beacon], FPS=50, 
+                add_noise_to_velocity=False,
+                add_noise_to_angle=False,
+                add_noise_to_sensors=False, verbose=False):
     i = 0
     while True:
         key = None
@@ -82,7 +89,11 @@ def simulation(display, bot: Robot, walls, beacons: List[Beacon], FPS=50, verbos
         if len(active_beacons) >= 3:
             if verbose: print(f'At least 3 active beams found. Performing trilateration...')
             beam_robot_dist = trilateration(bot._pos, active_beacons[:3])
-            trilateral_pos_for_kalman = np.concatenate((np.asarray(beam_robot_dist), bot._pos[2]), axis=None)+np.random.normal()
+
+            if add_noise_to_sensors:
+                trilateral_pos_for_kalman = np.concatenate((np.asarray(beam_robot_dist), bot._pos[2]), axis=None)+np.random.normal()
+            else: 
+                trilateral_pos_for_kalman = np.concatenate((np.asarray(beam_robot_dist), bot._pos[2]), axis=None)
 
             bot.draw_track((0, 0, 255))
 
@@ -110,7 +121,10 @@ def simulation(display, bot: Robot, walls, beacons: List[Beacon], FPS=50, verbos
         i += 1
 
 # call the function simulation to keep the display running until we quit
-simulation(pygame_display, robot, walls, beacons, FPS)
+simulation(display=pygame_display, bot=robot, walls=walls, beacons=beacons, FPS=FPS,
+            add_noise_to_velocity=noisy_velocity,
+            add_noise_to_angle=noisy_angles,
+            add_noise_to_sensors=noisy_sensors)
 
 # End the pygame display
 pygame.quit()
