@@ -38,6 +38,7 @@ class Robot:
         self._belief_angle = [position[2]]
         self._belief_covariance_matrix = [initial_covariance_matrix]
         self._change_in_theta = 0
+        self._ellipses = []
 
     # ---------------------------------------------------------------------------------
     # --------------------------- DRAWING FUNCTIONS -----------------------------------
@@ -206,12 +207,14 @@ class Robot:
         self._belief_angle.append(pos.flatten()[2])
         self._belief_covariance_matrix.append(cov_matrix)
 
-    def draw_elipse(self):
-        ellipse_boundaries = (
-                        self._belief_positions[-1][0], #left
-                        self._belief_positions[-1][1], #top
-                        1000*np.diagonal(self._belief_covariance_matrix[-1])[0], #width, sclaed by 100 to make it better visible
-                        1000*np.diagonal(self._belief_covariance_matrix[-1])[1] #height, sclaed by 100 to make it better visible
-                        )
+    def generate_ellipse(self):
+        width = 1000*np.diagonal(self._belief_covariance_matrix[-1])[0] # scaled by 1000 to make it better visible
+        height = 1000*np.diagonal(self._belief_covariance_matrix[-1])[1] # scaled by 1000 to make it better visible
+        left = self._belief_positions[-1][0]-width/2 # subtracting width/2 to center the ellipse at the center of the robot
+        top = self._belief_positions[-1][1]-height/2 # subtracting height/2 to center the ellipse at the center of the robot
+        ellipse_boundaries = (left, top, width, height)
+        self._ellipses.append(pygame.Rect(ellipse_boundaries))
 
-        pygame.draw.ellipse(surface=self._display, color=(169,169,169), rect=ellipse_boundaries, width = 1)
+    def draw_ellipses(self):
+        for ellipse in self._ellipses:
+            pygame.draw.ellipse(surface=self._display, color=(169,169,169), rect=ellipse, width = 1)

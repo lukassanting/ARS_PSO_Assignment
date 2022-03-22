@@ -93,8 +93,10 @@ def simulation(display, bot: Robot, walls, beacons: List[Beacon], FPS=50, verbos
         bot.draw_dashed_lines(points=bot._belief_positions, dash_length=4)
 
         # display elipse for covariance/uncertainty once every seconds
-        if i%(3*FPS) == 0:
-            bot.draw_elipse()
+        if i%(2*FPS) == 0:
+            bot.generate_ellipse()
+
+        bot.draw_ellipses()
 
         for wall in walls:
             pygame.draw.line(display, black, wall[0], wall[1], wall_thickness)
