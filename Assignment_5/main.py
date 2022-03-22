@@ -89,11 +89,11 @@ def simulation(display, bot: Robot, walls, beacons: List[Beacon], FPS=50, verbos
         else:
             bot.draw_track((0, 0, 0))
         
-        bot.update_beliefs(trilateration_pos=trilateral_pos_for_kalman, delta_t=1/FPS)
-        bot.draw_dashed_lines(points=bot._belief_positions)
+        bot.update_beliefs_no_rot_rate(trilateration_pos=trilateral_pos_for_kalman, delta_t=1/FPS)
+        bot.draw_dashed_lines(points=bot._belief_positions, dash_length=4)
 
         # display elipse for covariance/uncertainty once every seconds
-        if i%FPS == 0:
+        if i%(3*FPS) == 0:
             bot.draw_elipse()
 
         for wall in walls:

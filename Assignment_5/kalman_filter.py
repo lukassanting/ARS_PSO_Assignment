@@ -4,6 +4,10 @@ def matrix_B(delta_t, mean_t_minus_one):
     theta = mean_t_minus_one[2][0]
     return np.array([[delta_t*np.cos(theta), 0], [delta_t*np.sin(theta), 0], [0, delta_t]])
 
+def matrix_B_no_rot_rate(delta_t, mean_t_minus_one):
+    theta = mean_t_minus_one[2][0]
+    return np.array([[delta_t*np.cos(theta), 0], [delta_t*np.sin(theta), 0], [0, 1]])
+
 def initial_covariance_matrix(variance=0.01):
     return variance*np.identity(3)
 
@@ -24,6 +28,47 @@ def Kalman_filter(mean_t_minus_1, cov_matrix_t_minus_1, u_t, z_t, delta_t):
     matrix_C = np.identity(3)
 
     mean_bar_t = np.dot(matrix_A, mean_t_minus_1) + np.dot(matrix_B(delta_t=delta_t, mean_t_minus_one=mean_t_minus_1), u_t)
+    cov_matrix_bar_t = np.matmul(matrix_A, 
+                            np.matmul(cov_matrix_t_minus_1, np.transpose(matrix_A))
+                        ) + motion_model_noise_covariance_matrix_R()
+
+    if z_t is None:
+        # if no measurement is received, return values without correction
+        return mean_bar_t, cov_matrix_bar_t
+
+    try: 
+        # check if matrix in calculation of k_t is invertible
+        inverse = np.linalg.inv(
+                    np.matmul(matrix_C, 
+                        np.matmul(cov_matrix_bar_t, 
+                            np.transpose(matrix_C)
+                        )
+                    ) + sensor_model_noise_covariance_matrix_Q()
+            )
+    except np.linalg.LinAlgError:
+        print('Matrix in calculation of k_t is non-invertible. This means that no noise is existent. Non-corrected values are returned.')
+        return mean_bar_t, cov_matrix_bar_t
+
+
+    k_t = np.matmul(cov_matrix_bar_t, 
+            np.matmul(np.transpose(matrix_C), inverse)
+        )
+    mean_t = mean_bar_t + np.dot(k_t, z_t-np.dot(matrix_C, mean_bar_t))
+    cov_matrix_t = np.matmul(np.identity(3) - np.matmul(k_t, matrix_C), cov_matrix_bar_t)
+    return mean_t, cov_matrix_t
+
+
+def KF_no_rot_rate(mean_t_minus_1, cov_matrix_t_minus_1, u_t, z_t, delta_t):
+    # u_t = np.array([translational_velocity, change_in_theta])
+    assert mean_t_minus_1.shape == (3,1), 'Shape of mean vector must be (3,1)'
+    assert u_t.shape == (2,1), 'Shape of control vector must be (2,1)'
+    if z_t is not None:
+        assert z_t.shape == (3,1), 'Shape of measurement vector must be (3,1) or None'
+
+    matrix_A = np.identity(3)
+    matrix_C = np.identity(3)
+
+    mean_bar_t = np.dot(matrix_A, mean_t_minus_1) + np.dot(matrix_B_no_rot_rate(delta_t=delta_t, mean_t_minus_one=mean_t_minus_1), u_t)
     cov_matrix_bar_t = np.matmul(matrix_A, 
                             np.matmul(cov_matrix_t_minus_1, np.transpose(matrix_A))
                         ) + motion_model_noise_covariance_matrix_R()

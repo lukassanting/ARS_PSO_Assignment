@@ -1,7 +1,7 @@
 import pygame
 import numpy as np
 import math
-from kalman_filter import Kalman_filter, initial_covariance_matrix
+from kalman_filter import Kalman_filter, KF_no_rot_rate, initial_covariance_matrix
 
 class Robot:
     """
@@ -37,6 +37,7 @@ class Robot:
         self._belief_positions = [(position[0], position[1])]
         self._belief_angle = [position[2]]
         self._belief_covariance_matrix = [initial_covariance_matrix]
+        self._change_in_theta = 0
 
     # ---------------------------------------------------------------------------------
     # --------------------------- DRAWING FUNCTIONS -----------------------------------
@@ -86,6 +87,7 @@ class Robot:
     # -------------------------- MOVEMENT FUNCTIONS -----------------------------------
     # ---------------------------------------------------------------------------------
     def move(self, key, time_elapsed, verbose=False):
+        self._change_in_theta = 0
         if key is not None:
             if key == pygame.K_w: self.accelerate(verbose)
             if key == pygame.K_s: self.decelerate(verbose)
@@ -122,11 +124,13 @@ class Robot:
 
     def increase_angle(self, verbose=False):
         self._pos[2] += self._angular_acc
+        self._change_in_theta += self._angular_acc
         if verbose:
             print(f'Increasing angular position: {self._pos[2]}')
 
     def decrease_angle(self, verbose=False):
         self._pos[2] -= self._angular_acc
+        self._change_in_theta -= self._angular_acc
         if verbose:
             print(f'Decreasing angular position: {self._pos[2]}')
 
@@ -170,8 +174,28 @@ class Robot:
                 trilateration_pos = np.asarray(trilateration_pos)
             trilateration_pos = trilateration_pos.reshape((3,1))
         prior_belief = np.append(np.asarray(self._belief_positions[-1]), self._belief_angle[-1]).reshape((3,1))
+        print(f'rotation rate is {self._rot_rate}')
         u = np.array([(self._vel_left+self._vel_right)/2, self._rot_rate]).reshape((2,1))
         pos, cov_matrix = Kalman_filter(
+                                    mean_t_minus_1=prior_belief,
+                                    cov_matrix_t_minus_1=initial_covariance_matrix(),
+                                    u_t=u,
+                                    z_t=trilateration_pos,
+                                    delta_t=delta_t
+                                    )
+        self._belief_positions.append(tuple(pos.flatten()[:2]))
+        self._belief_angle.append(pos.flatten()[2])
+        self._belief_covariance_matrix.append(cov_matrix)
+
+
+    def update_beliefs_no_rot_rate(self, trilateration_pos, delta_t:float):
+        if trilateration_pos is not None:
+            if isinstance(trilateration_pos, tuple):
+                trilateration_pos = np.asarray(trilateration_pos)
+            trilateration_pos = trilateration_pos.reshape((3,1))
+        prior_belief = np.append(np.asarray(self._belief_positions[-1]), self._belief_angle[-1]).reshape((3,1))
+        u = np.array([(self._vel_left+self._vel_right)/2, self._change_in_theta]).reshape((2,1))
+        pos, cov_matrix = KF_no_rot_rate(
                                     mean_t_minus_1=prior_belief,
                                     cov_matrix_t_minus_1=initial_covariance_matrix(),
                                     u_t=u,
@@ -186,8 +210,8 @@ class Robot:
         ellipse_boundaries = (
                         self._belief_positions[-1][0], #left
                         self._belief_positions[-1][1], #top
-                        100*np.diagonal(self._belief_covariance_matrix[-1])[0], #width, sclaed by 100 to make it better visible
-                        100*np.diagonal(self._belief_covariance_matrix[-1])[1] #height, sclaed by 100 to make it better visible
+                        1000*np.diagonal(self._belief_covariance_matrix[-1])[0], #width, sclaed by 100 to make it better visible
+                        1000*np.diagonal(self._belief_covariance_matrix[-1])[1] #height, sclaed by 100 to make it better visible
                         )
 
         pygame.draw.ellipse(surface=self._display, color=(169,169,169), rect=ellipse_boundaries, width = 1)
